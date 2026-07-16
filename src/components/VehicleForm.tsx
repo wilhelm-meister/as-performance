@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Vehicle } from "@/lib/types";
 import type { FormState } from "@/app/(app)/kunden/actions";
 import { saveVehicleAction } from "@/app/(app)/kunden/actions";
+import { VinLookupFields } from "./VinLookupFields";
 
 export function VehicleForm({
   customerId,
@@ -39,52 +40,48 @@ export function VehicleForm({
           <div className="text-[17px] font-bold">
             {isNew ? "Fahrzeug hinzufügen" : "Fahrzeug bearbeiten"}
           </div>
+          <div className="text-[12.5px] text-[#86868b] mt-0.5">
+            Tipp: VIN eintippen und &bdquo;Daten laden&ldquo; — Modell, Baujahr,
+            Kraftstoff und Motor werden automatisch ausgefüllt.
+          </div>
         </div>
 
-        <div className="px-6 py-[22px] grid grid-cols-2 gap-3.5">
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              Kennzeichen *
-            </label>
-            <input
-              name="plate"
-              required
-              placeholder="HB-AS 1234"
-              defaultValue={v("plate", vehicle?.plate)}
-              className={`${field} font-mono`}
-            />
+        <div className="px-6 py-[22px] flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                Kennzeichen *
+              </label>
+              <input
+                name="plate"
+                required
+                placeholder="VER-AS 123"
+                defaultValue={v("plate", vehicle?.plate)}
+                className={`${field} font-mono`}
+              />
+            </div>
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                KM-Stand
+              </label>
+              <input
+                name="km"
+                placeholder="85000"
+                defaultValue={v("km", vehicle?.km != null ? String(vehicle.km) : "")}
+                className={`${field} font-mono`}
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              Marke / Modell
-            </label>
-            <input
-              name="model"
-              placeholder="BMW 320d Touring"
-              defaultValue={v("model", vehicle?.model)}
-              className={field}
-            />
-          </div>
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">VIN</label>
-            <input
-              name="vin"
-              placeholder="WBA…"
-              defaultValue={v("vin", vehicle?.vin)}
-              className={`${field} font-mono`}
-            />
-          </div>
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              KM-Stand
-            </label>
-            <input
-              name="km"
-              placeholder="85000"
-              defaultValue={v("km", vehicle?.km != null ? String(vehicle.km) : "")}
-              className={`${field} font-mono`}
-            />
-          </div>
+
+          <VinLookupFields
+            initial={{
+              vin: v("vin", vehicle?.vin),
+              model: v("model", vehicle?.model),
+              year: v("year", vehicle?.year != null ? String(vehicle.year) : ""),
+              fuel: v("fuel", vehicle?.fuel),
+              engine: v("engine", vehicle?.engine),
+            }}
+          />
         </div>
 
         {state?.error && (

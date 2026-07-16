@@ -196,8 +196,14 @@ export async function buildDocumentPdf({
       height: 38,
       color: BOX_BG,
     });
+    const boxWidth = M_RIGHT - M_LEFT - 24;
     text(
-      `Fahrzeug: ${vehicle.model || "—"}    Kennzeichen: ${vehicle.plate}`,
+      truncate(
+        `Fahrzeug: ${vehicle.model || "—"}${vehicle.year ? ` (${vehicle.year})` : ""}    Kennzeichen: ${vehicle.plate}`,
+        boxWidth,
+        9,
+        bold
+      ),
       M_LEFT + 12,
       560,
       9,
@@ -209,8 +215,13 @@ export async function buildDocumentPdf({
         : vehicle.km != null
           ? vehicle.km.toLocaleString("de-DE").replace(/ /g, " ") + " km"
           : "—";
+    const detailTail = [vehicle.fuel, vehicle.engine].filter(Boolean).join(" · ");
     text(
-      `VIN: ${vehicle.vin || "—"}    KM-Stand: ${kmText}`,
+      truncate(
+        `VIN: ${vehicle.vin || "—"}    KM-Stand: ${kmText}${detailTail ? `    ${detailTail}` : ""}`,
+        boxWidth,
+        8.5
+      ),
       M_LEFT + 12,
       546,
       8.5,

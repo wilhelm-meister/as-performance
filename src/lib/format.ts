@@ -80,3 +80,14 @@ export const ITEM_UNIT: Record<ItemType, string> = {
 export function docNoun(type: "quote" | "invoice"): string {
   return type === "quote" ? "Angebot" : "Rechnung";
 }
+
+/** „Baujahr 2019 · Diesel · 2,0 l · 110 kW (150 PS)" — nur vorhandene Angaben */
+export function vehicleDetails(v: {
+  year?: number | null;
+  fuel?: string;
+  engine?: string;
+}): string {
+  return [v.year ? `Baujahr ${v.year}` : "", v.fuel || "", v.engine || ""]
+    .filter(Boolean)
+    .join(" · ");
+}

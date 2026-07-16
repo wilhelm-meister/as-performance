@@ -12,6 +12,7 @@ import {
   formatDate,
   formatDateTime,
   todayISO,
+  vehicleDetails,
 } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
@@ -384,6 +385,11 @@ export function DocEditor({
                     />
                   )}
                 </div>
+                {vehicleDetails(vehicle) && (
+                  <div className="col-span-3 text-[12px] text-[#86868b] -mt-1">
+                    {vehicleDetails(vehicle)}
+                  </div>
+                )}
               </div>
             )}
 

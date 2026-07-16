@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Customer } from "@/lib/types";
 import type { FormState } from "@/app/(app)/kunden/actions";
 import { createCustomerAction, updateCustomerAction } from "@/app/(app)/kunden/actions";
+import { VinLookupFields } from "./VinLookupFields";
 
 function Field({
   label,
@@ -86,16 +87,23 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
           </div>
 
           {isNew && (
-            <div className="border-t border-[#ececf0] pt-4">
-              <div className="text-[13px] font-semibold mb-3">
+            <div className="border-t border-[#ececf0] pt-4 flex flex-col gap-3.5">
+              <div className="text-[13px] font-semibold">
                 Erstes Fahrzeug <span className="text-[#86868b] font-normal">(optional)</span>
               </div>
               <div className="grid grid-cols-2 gap-3.5">
-                <Field label="Kennzeichen" name="plate" placeholder="HB-AS 1234" mono defaultValue={v("plate")} />
-                <Field label="Marke / Modell" name="model" placeholder="BMW 320d" defaultValue={v("model")} />
-                <Field label="VIN" name="vin" placeholder="WBA…" mono defaultValue={v("vin")} />
+                <Field label="Kennzeichen" name="plate" placeholder="VER-AS 123" mono defaultValue={v("plate")} />
                 <Field label="KM-Stand" name="km" placeholder="85000" mono defaultValue={v("km")} />
               </div>
+              <VinLookupFields
+                initial={{
+                  vin: v("vin"),
+                  model: v("model"),
+                  year: v("year"),
+                  fuel: v("fuel"),
+                  engine: v("engine"),
+                }}
+              />
             </div>
           )}
 

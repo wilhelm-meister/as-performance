@@ -61,6 +61,9 @@ export async function createCustomerAction(
       model: str(fd, "model"),
       vin: str(fd, "vin").toUpperCase(),
       km: intOrNull(str(fd, "km")),
+      year: intOrNull(str(fd, "year")),
+      fuel: str(fd, "fuel"),
+      engine: str(fd, "engine"),
     });
   }
 
@@ -119,6 +122,9 @@ export async function saveVehicleAction(
     model: str(fd, "model"),
     vin: str(fd, "vin").toUpperCase(),
     km: intOrNull(str(fd, "km")),
+    year: intOrNull(str(fd, "year")),
+    fuel: str(fd, "fuel"),
+    engine: str(fd, "engine"),
   };
 
   const supabase = await createClient();

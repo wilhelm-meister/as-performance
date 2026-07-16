@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomer, listDocs } from "@/lib/data";
-import { formatKm, initials } from "@/lib/format";
+import { formatKm, initials, vehicleDetails } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { DocRowList } from "@/components/DocTable";
@@ -90,6 +90,9 @@ export default async function KundenDetailPage({
                   <div className="text-[12px] text-[#86868b] font-mono">
                     {v.vin ? `VIN ${v.vin}` : "VIN —"}  ·  {formatKm(v.km)}
                   </div>
+                  {vehicleDetails(v) && (
+                    <div className="text-[12px] text-[#86868b] mt-0.5">{vehicleDetails(v)}</div>
+                  )}
                 </Link>
               ))}
               {customer.vehicles.length === 0 && (

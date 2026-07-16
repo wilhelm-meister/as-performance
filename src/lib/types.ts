@@ -34,6 +34,9 @@ export type Vehicle = {
   model: string;
   vin: string;
   km: number | null;
+  year: number | null;
+  fuel: string;
+  engine: string;
   created_at: string;
 };
 
