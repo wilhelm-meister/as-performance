@@ -1,0 +1,4 @@
+.env*
+design-vorlage
+node_modules
+.next
