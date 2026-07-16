@@ -192,8 +192,9 @@ export function DocEditor({
       if (r.error) {
         setError(r.error);
       } else if (r.ok) {
+        // Direkt zum gespeicherten Beleg — dort warten PDF, Senden und Umwandeln
         router.push(
-          `${r.listPath}?ok=${encodeURIComponent(`${noun} ${r.number} gespeichert`)}`
+          `/belege/${r.id}?ok=${encodeURIComponent(`${noun} ${r.number} gespeichert`)}`
         );
       }
     });
@@ -233,6 +234,7 @@ export function DocEditor({
             <ConfirmButton
               label="→ In Rechnung umwandeln"
               question="Rechnung erstellen?"
+              variant="primary"
               action={async () => {
                 const r = await convertQuoteAction(doc.id);
                 if (r.error) return { error: r.error };
