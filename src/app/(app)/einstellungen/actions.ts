@@ -43,6 +43,7 @@ export async function updateSettingsAction(
       hourly_rate: num(fd, "hourly_rate", 89),
       payment_days: Math.round(num(fd, "payment_days", 14)),
       quote_validity_days: Math.round(num(fd, "quote_validity_days", 30)),
+      small_business: str(fd, "small_business") === "true",
       updated_at: new Date().toISOString(),
     })
     .eq("id", 1);

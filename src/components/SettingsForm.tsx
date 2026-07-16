@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { Settings } from "@/lib/types";
+import { Toggle } from "@/components/Toggle";
 import { updateSettingsAction, type SettingsState } from "@/app/(app)/einstellungen/actions";
 
 function Field({
@@ -38,6 +39,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
     updateSettingsAction,
     null
   );
+  const [smallBusiness, setSmallBusiness] = useState(settings.small_business);
 
   return (
     <form action={formAction}>
@@ -67,6 +69,24 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           <div className="border-t border-[#ececf0] pt-4 grid grid-cols-2 gap-3.5">
             <Field label="Steuernummer" name="tax_number" defaultValue={settings.tax_number} />
             <Field label="USt-IdNr. (optional)" name="vat_id" defaultValue={settings.vat_id} />
+          </div>
+
+          <div className="border-t border-[#ececf0] pt-4">
+            <input type="hidden" name="small_business" value={smallBusiness ? "true" : "false"} />
+            <div className="flex items-start gap-3.5">
+              <Toggle checked={smallBusiness} onChange={setSmallBusiness} />
+              <div>
+                <div className="text-[13.5px] font-semibold">
+                  Kleinunternehmer (§ 19 UStG)
+                </div>
+                <p className="text-[12.5px] text-[#86868b] mt-0.5 leading-relaxed">
+                  Neue Angebote und Rechnungen weisen keine Umsatzsteuer aus — der
+                  Pflichthinweis &bdquo;Gemäß § 19 UStG wird keine Umsatzsteuer
+                  berechnet&ldquo; erscheint automatisch auf jedem Beleg. Bereits
+                  erstellte Belege bleiben unverändert.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="border-t border-[#ececf0] pt-4 grid grid-cols-3 gap-3.5">

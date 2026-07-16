@@ -283,12 +283,15 @@ export async function buildDocumentPdf({
   }
   y -= 8;
   const sumLabelX = 360;
-  text("Zwischensumme (netto)", sumLabelX, y, 9.5, font, GRAY);
-  rightText(euroPdf(Number(doc.net_total)), COL_TOTAL_R, y, 9.5);
-  y -= 16;
-  text(`zzgl. ${qtyPdf(Number(doc.vat_rate))} % MwSt.`, sumLabelX, y, 9.5, font, GRAY);
-  rightText(euroPdf(Number(doc.vat_total)), COL_TOTAL_R, y, 9.5);
-  y -= 10;
+  const smallBusiness = Number(doc.vat_rate) === 0;
+  if (!smallBusiness) {
+    text("Zwischensumme (netto)", sumLabelX, y, 9.5, font, GRAY);
+    rightText(euroPdf(Number(doc.net_total)), COL_TOTAL_R, y, 9.5);
+    y -= 16;
+    text(`zzgl. ${qtyPdf(Number(doc.vat_rate))} % MwSt.`, sumLabelX, y, 9.5, font, GRAY);
+    rightText(euroPdf(Number(doc.vat_total)), COL_TOTAL_R, y, 9.5);
+    y -= 10;
+  }
   page.drawLine({
     start: { x: sumLabelX, y },
     end: { x: M_RIGHT, y },
@@ -302,6 +305,9 @@ export async function buildDocumentPdf({
 
   // ---- Hinweistexte ----
   const notes: string[] = [];
+  if (smallBusiness) {
+    notes.push("Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).");
+  }
   if (doc.type === "invoice") {
     if (doc.due_date) {
       notes.push(

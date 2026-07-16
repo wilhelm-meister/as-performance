@@ -41,7 +41,6 @@ export async function saveDocumentAction(input: SaveDocInput) {
   }
 
   const items = sanitizeItems(input.items);
-  const totals = computeTotals(items);
   const km = input.km ? parseInt(input.km.replace(/[^\d]/g, ""), 10) || null : null;
   const listPath = input.type === "quote" ? "/angebote" : "/rechnungen";
 
@@ -50,7 +49,7 @@ export async function saveDocumentAction(input: SaveDocInput) {
   if (input.id) {
     const { data: existing } = await supabase
       .from("documents")
-      .select("id, type, status, locked, number")
+      .select("id, type, status, locked, number, vat_rate")
       .eq("id", input.id)
       .maybeSingle();
 
@@ -58,6 +57,9 @@ export async function saveDocumentAction(input: SaveDocInput) {
     if (existing.locked || existing.status === "paid" || existing.status === "accepted") {
       return { error: "Dieser Beleg ist gesperrt und kann nicht mehr geändert werden." };
     }
+
+    // Steuersatz wurde beim Anlegen eingefroren — Summen damit neu rechnen.
+    const totals = computeTotals(items, Number(existing.vat_rate ?? 19));
 
     const { error } = await supabase
       .from("documents")
@@ -82,6 +84,10 @@ export async function saveDocumentAction(input: SaveDocInput) {
   const settings = await getSettings();
   const today = todayISO();
 
+  // Kleinunternehmer (§ 19 UStG) → 0 % — wird am Beleg eingefroren.
+  const vatRate = settings?.small_business ? 0 : 19;
+  const totals = computeTotals(items, vatRate);
+
   const payload = {
     type: input.type,
     customer_id: input.customer_id,
@@ -90,7 +96,7 @@ export async function saveDocumentAction(input: SaveDocInput) {
     issue_date: today,
     due_date: input.type === "invoice" ? addDaysISO(today, settings?.payment_days ?? 14) : "",
     items,
-    vat_rate: "19",
+    vat_rate: String(vatRate),
     net_total: String(totals.net),
     vat_total: String(totals.vat),
     gross_total: String(totals.gross),

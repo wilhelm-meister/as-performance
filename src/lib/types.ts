@@ -86,6 +86,7 @@ export type Settings = {
   hourly_rate: number;
   payment_days: number;
   quote_validity_days: number;
+  small_business: boolean;
   updated_at: string;
 };
 

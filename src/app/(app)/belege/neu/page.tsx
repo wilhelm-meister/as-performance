@@ -24,6 +24,7 @@ export default async function NeuerBelegPage({
           docType={docType}
           customers={customers}
           hourlyRate={Number(settings?.hourly_rate ?? 89)}
+          defaultVatRate={settings?.small_business ? 0 : 19}
           presetCustomerId={customer}
         />
       </main>

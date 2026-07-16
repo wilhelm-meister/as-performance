@@ -39,6 +39,7 @@ export default async function BelegPage({
           docType={doc.type}
           customers={customers}
           hourlyRate={Number(settings?.hourly_rate ?? 89)}
+          defaultVatRate={settings?.small_business ? 0 : 19}
           convertedNumber={converted?.number ?? null}
           sourceNumber={source?.number ?? null}
         />

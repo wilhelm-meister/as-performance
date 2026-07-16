@@ -105,6 +105,7 @@ export function DocEditor({
   docType,
   customers,
   hourlyRate,
+  defaultVatRate,
   convertedNumber,
   sourceNumber,
   presetCustomerId,
@@ -113,6 +114,7 @@ export function DocEditor({
   docType: "quote" | "invoice";
   customers: CustomerWithVehicles[];
   hourlyRate: number;
+  defaultVatRate: number;
   convertedNumber?: string | null;
   sourceNumber?: string | null;
   presetCustomerId?: string;
@@ -145,7 +147,9 @@ export function DocEditor({
     doc && (doc.locked || doc.status === "paid" || doc.status === "accepted")
   );
 
-  const totals = useMemo(() => computeTotals(items), [items]);
+  // Bestehende Belege behalten ihren eingefrorenen Steuersatz; neue folgen den Einstellungen.
+  const vatRate = doc ? Number(doc.vat_rate) : defaultVatRate;
+  const totals = useMemo(() => computeTotals(items, vatRate), [items, vatRate]);
 
   const setItem = (i: number, patch: Partial<Item>) =>
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -495,14 +499,22 @@ export function DocEditor({
 
               <div className="flex justify-end mt-[18px]">
                 <div className="w-[300px]">
-                  <div className="flex justify-between py-1.5 text-[13.5px] text-[#6e6e73]">
-                    <span>Zwischensumme (netto)</span>
-                    <span className="font-mono">{euro(totals.net)}</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 text-[13.5px] text-[#6e6e73]">
-                    <span>zzgl. 19% MwSt.</span>
-                    <span className="font-mono">{euro(totals.vat)}</span>
-                  </div>
+                  {vatRate > 0 ? (
+                    <>
+                      <div className="flex justify-between py-1.5 text-[13.5px] text-[#6e6e73]">
+                        <span>Zwischensumme (netto)</span>
+                        <span className="font-mono">{euro(totals.net)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 text-[13.5px] text-[#6e6e73]">
+                        <span>zzgl. {vatRate}% MwSt.</span>
+                        <span className="font-mono">{euro(totals.vat)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-1.5 text-[12px] text-[#86868b]">
+                      Kleinunternehmerregelung § 19 UStG — keine Umsatzsteuer
+                    </div>
+                  )}
                   <div className="flex justify-between pt-3 mt-1.5 border-t border-[#e5e5e7] text-[16px] font-bold">
                     <span>Gesamt</span>
                     <span className="font-mono">{euro(totals.gross)}</span>
