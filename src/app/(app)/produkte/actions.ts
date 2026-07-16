@@ -39,8 +39,11 @@ export async function saveProductAction(
     return { error: "Bitte einen gültigen Preis eingeben.", values: echo(fd) };
   }
 
+  const qtyRaw = parseFloat(str(fd, "default_qty").replace(",", "."));
+  const default_qty = Number.isFinite(qtyRaw) && qtyRaw > 0 ? qtyRaw : 1;
+
   const supabase = await createClient();
-  const row = { name, type, price };
+  const row = { name, type, price, default_qty };
 
   const { error } = productId
     ? await supabase.from("products").update(row).eq("id", productId)

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { getSettings } from "@/lib/data";
 import { Topbar } from "@/components/Topbar";
 import { ProductForm } from "@/components/ProductForm";
 
-export default function NeuesProduktPage() {
+export default async function NeuesProduktPage() {
+  const settings = await getSettings();
   return (
     <>
       <Topbar title="Neues Produkt">
@@ -16,7 +18,7 @@ export default function NeuesProduktPage() {
           >
             ← Zurück zu Produkten
           </Link>
-          <ProductForm />
+          <ProductForm hourlyRate={Number(settings?.hourly_rate ?? 89)} />
         </div>
       </main>
     </>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct } from "@/lib/data";
+import { getProduct, getSettings } from "@/lib/data";
 import { Topbar } from "@/components/Topbar";
 import { ProductForm } from "@/components/ProductForm";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -12,7 +12,7 @@ export default async function ProduktBearbeitenPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await getProduct(id);
+  const [product, settings] = await Promise.all([getProduct(id), getSettings()]);
   if (!product) notFound();
 
   const deleteAction = deleteProductAction.bind(null, id);
@@ -30,7 +30,7 @@ export default async function ProduktBearbeitenPage({
           >
             ← Zurück zu Produkten
           </Link>
-          <ProductForm product={product} />
+          <ProductForm product={product} hourlyRate={Number(settings?.hourly_rate ?? 89)} />
 
           <div className="mt-4 bg-white border border-[#e5e5e7] rounded-xl px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
             <div className="text-[13px] text-[#6e6e73]">

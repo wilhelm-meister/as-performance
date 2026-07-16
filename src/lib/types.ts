@@ -105,5 +105,7 @@ export type Product = {
   type: ItemType;
   name: string;
   price: number;
+  /** Vorgabe-Menge beim Einfügen: Stunden bei Arbeitszeit, Stück bei Teilen */
+  default_qty: number;
   created_at: string;
 };

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listProducts } from "@/lib/data";
-import { euro, ITEM_TYPE_LABEL } from "@/lib/format";
+import { euro, ITEM_TYPE_LABEL, ITEM_UNIT } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 
@@ -43,18 +43,20 @@ export default async function ProduktePage({
 
           <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
-              <div className="min-w-[560px]">
-                <div className="grid grid-cols-[110px_1fr_140px_60px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
+              <div className="min-w-[680px]">
+                <div className="grid grid-cols-[100px_1fr_100px_130px_130px_50px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
                   <div>Art</div>
                   <div>Bezeichnung</div>
-                  <div className="text-right">Preis (netto)</div>
+                  <div className="text-right">Menge</div>
+                  <div className="text-right">Einzelpreis</div>
+                  <div className="text-right">Gesamt (netto)</div>
                   <div></div>
                 </div>
                 {filtered.map((p) => (
                   <Link
                     key={p.id}
                     href={`/produkte/${p.id}`}
-                    className="grid grid-cols-[110px_1fr_140px_60px] items-center px-5 py-[13px] border-b border-[#f0f0f3] hover:bg-[#f5f5f7]"
+                    className="grid grid-cols-[100px_1fr_100px_130px_130px_50px] items-center px-5 py-[13px] border-b border-[#f0f0f3] hover:bg-[#f5f5f7]"
                   >
                     <div>
                       <span className="inline-block px-2 py-[3px] rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73]">
@@ -62,8 +64,14 @@ export default async function ProduktePage({
                       </span>
                     </div>
                     <div className="text-[14px] font-medium truncate pr-3">{p.name}</div>
-                    <div className="font-mono font-semibold text-[13.5px] text-right">
+                    <div className="font-mono text-[13px] text-right text-[#6e6e73]">
+                      {Number(p.default_qty).toLocaleString("de-DE")} {ITEM_UNIT[p.type]}
+                    </div>
+                    <div className="font-mono text-[13.5px] text-right">
                       {euro(Number(p.price))}
+                    </div>
+                    <div className="font-mono font-semibold text-[13.5px] text-right">
+                      {euro(Number(p.default_qty) * Number(p.price))}
                     </div>
                     <div className="text-right text-[#d2d2d7]">→</div>
                   </Link>

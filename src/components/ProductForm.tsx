@@ -1,14 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Product } from "@/lib/types";
+import type { ItemType, Product } from "@/lib/types";
 import type { ProductFormState } from "@/app/(app)/produkte/actions";
 import { saveProductAction } from "@/app/(app)/produkte/actions";
 
-export function ProductForm({ product }: { product?: Product }) {
+export function ProductForm({
+  product,
+  hourlyRate,
+}: {
+  product?: Product;
+  hourlyRate: number;
+}) {
   const router = useRouter();
   const isNew = !product;
+
+  const [type, setType] = useState<ItemType>(product?.type ?? "part");
+  const [price, setPrice] = useState(product ? String(product.price) : "");
 
   const action = async (prev: ProductFormState, fd: FormData) => {
     const r = await saveProductAction(product?.id ?? null, prev, fd);
@@ -23,6 +32,21 @@ export function ProductForm({ product }: { product?: Product }) {
   const [state, formAction, pending] = useActionState(action, null);
   const v = (key: string, fallback = "") => state?.values?.[key] ?? fallback;
 
+  const onTypeChange = (t: ItemType) => {
+    setType(t);
+    // Bei Arbeitszeit den Stundensatz aus den Einstellungen vorschlagen
+    if (t === "labor" && !price.trim()) {
+      setPrice(String(hourlyRate));
+    }
+  };
+
+  const qtyLabel = type === "labor" ? "Stunden" : type === "part" ? "Stück" : "Menge";
+  const priceLabel = type === "labor" ? "Stundensatz (€ netto)" : "Preis (€ netto)";
+  const qtyHint =
+    type === "labor"
+      ? "Wie lange dauert die Arbeit üblicherweise? Wird als Menge eingefügt."
+      : "Vorgabe-Menge beim Einfügen — im Beleg jederzeit änderbar.";
+
   const field =
     "w-full h-10 border border-[#e5e5e7] rounded-lg px-3 text-[14px] outline-none focus:border-[#0071e3] bg-white";
 
@@ -35,56 +59,85 @@ export function ProductForm({ product }: { product?: Product }) {
           </div>
           <div className="text-[12.5px] text-[#86868b] mt-0.5">
             Produkte fügst du im Angebots- und Rechnungs-Editor mit einem Klick als
-            Position ein.
+            fertige Position ein — inklusive Menge und Preis.
           </div>
         </div>
 
-        <div className="px-6 py-[22px] grid grid-cols-1 sm:grid-cols-[150px_1fr_140px] gap-3.5">
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              Art
-            </label>
-            <select
-              name="type"
-              defaultValue={v("type", product?.type ?? "part")}
-              className={`${field} cursor-pointer`}
-            >
-              <option value="labor">Arbeitszeit</option>
-              <option value="part">Ersatzteil</option>
-              <option value="flat">Pauschale</option>
-            </select>
+        <div className="px-6 py-[22px] flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr] gap-3.5">
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                Art
+              </label>
+              <select
+                name="type"
+                value={type}
+                onChange={(e) => onTypeChange(e.target.value as ItemType)}
+                className={`${field} cursor-pointer`}
+              >
+                <option value="labor">Arbeitszeit</option>
+                <option value="part">Ersatzteil</option>
+                <option value="flat">Pauschale</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                Bezeichnung *
+              </label>
+              <input
+                name="name"
+                required
+                placeholder={
+                  type === "labor" ? "z.B. Bremsen vorne erneuern" : "z.B. Bremsscheiben Satz"
+                }
+                defaultValue={v("name", product?.name)}
+                className={field}
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              Bezeichnung *
-            </label>
-            <input
-              name="name"
-              required
-              placeholder="z.B. Ölwechsel inkl. Filter"
-              defaultValue={v("name", product?.name)}
-              className={field}
-            />
-          </div>
-          <div>
-            <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-              Preis (€ netto)
-            </label>
-            <input
-              name="price"
-              required
-              placeholder="89,00"
-              defaultValue={v("price", product ? String(product.price) : "")}
-              className={`${field} font-mono text-right`}
-            />
-          </div>
-        </div>
 
-        {state?.error && (
-          <div className="mx-6 mb-4 rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-4 py-3 text-[13px] text-[#c9362b]">
-            {state.error}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                {qtyLabel}
+              </label>
+              <input
+                name="default_qty"
+                placeholder={type === "labor" ? "1,5" : "1"}
+                defaultValue={v(
+                  "default_qty",
+                  product ? String(product.default_qty) : "1"
+                )}
+                className={`${field} font-mono`}
+              />
+              <div className="text-[11.5px] text-[#86868b] mt-1">{qtyHint}</div>
+            </div>
+            <div>
+              <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
+                {priceLabel}
+              </label>
+              <input
+                name="price"
+                required
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder={type === "labor" ? String(hourlyRate) : "49,90"}
+                className={`${field} font-mono`}
+              />
+              {type === "labor" && (
+                <div className="text-[11.5px] text-[#86868b] mt-1">
+                  Dein Standard-Stundensatz: {hourlyRate} € — abweichender Satz möglich.
+                </div>
+              )}
+            </div>
           </div>
-        )}
+
+          {state?.error && (
+            <div className="rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-4 py-3 text-[13px] text-[#c9362b]">
+              {state.error}
+            </div>
+          )}
+        </div>
 
         <div className="px-6 py-4 border-t border-[#ececf0] bg-[#fafafc] flex justify-end gap-2.5">
           <button

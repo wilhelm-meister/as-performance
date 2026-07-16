@@ -7,6 +7,7 @@ import type { CustomerWithVehicles, DocWithRefs, Item, ItemType, Product } from 
 import { computeTotals, lineTotal } from "@/lib/totals";
 import {
   ITEM_TYPE_LABEL,
+  ITEM_UNIT,
   docNoun,
   euro,
   formatDate,
@@ -408,7 +409,12 @@ export function DocEditor({
                           if (p) {
                             setItems((prev) => [
                               ...prev,
-                              { type: p.type, desc: p.name, qty: 1, price: Number(p.price) },
+                              {
+                                type: p.type,
+                                desc: p.name,
+                                qty: Number(p.default_qty) || 1,
+                                price: Number(p.price),
+                              },
                             ]);
                           }
                         }}
@@ -417,7 +423,10 @@ export function DocEditor({
                         <option value="">+ Aus Katalog…</option>
                         {products.map((p) => (
                           <option key={p.id} value={p.id}>
-                            {ITEM_TYPE_LABEL[p.type]} · {p.name} · {euro(Number(p.price))}
+                            {ITEM_TYPE_LABEL[p.type]} · {p.name} ·{" "}
+                            {p.type === "flat"
+                              ? euro(Number(p.price))
+                              : `${Number(p.default_qty).toLocaleString("de-DE")} ${ITEM_UNIT[p.type]} × ${euro(Number(p.price))}`}
                           </option>
                         ))}
                       </select>
