@@ -6,6 +6,7 @@ import type {
   Doc,
   DocWithRefs,
   Member,
+  Product,
   Settings,
 } from "./types";
 
@@ -64,6 +65,22 @@ export async function getDoc(id: string): Promise<DocWithRefs | null> {
     .eq("id", id)
     .maybeSingle();
   return (data as unknown as DocWithRefs) ?? null;
+}
+
+export const listProducts = cache(async (): Promise<Product[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("products").select("*").order("name");
+  return (data as Product[]) ?? [];
+});
+
+export async function getProduct(id: string): Promise<Product | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as Product) ?? null;
 }
 
 export async function listMembers(): Promise<Member[]> {

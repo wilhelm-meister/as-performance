@@ -1,4 +1,4 @@
-import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import type { Customer, Doc, Settings, Vehicle } from "./types";
 import { lineTotal } from "./totals";
 
@@ -89,6 +89,29 @@ export async function buildDocumentPdf({
   pdf.setTitle(`${noun} ${doc.number}`);
   pdf.setAuthor(settings.name);
 
+  // Logo laden (falls hinterlegt) — bei Fehlern einfach ohne Logo weitermachen
+  let logoImg: PDFImage | null = null;
+  if (settings.logo_url) {
+    try {
+      const res = await fetch(settings.logo_url, {
+        signal: AbortSignal.timeout(6000),
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        // Dateityp anhand der Signatur erkennen — Endungen lügen manchmal
+        const isPng =
+          bytes.length > 3 &&
+          bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+        const isJpg = bytes.length > 2 && bytes[0] === 0xff && bytes[1] === 0xd8;
+        if (isPng) logoImg = await pdf.embedPng(bytes);
+        else if (isJpg) logoImg = await pdf.embedJpg(bytes);
+      }
+    } catch {
+      logoImg = null;
+    }
+  }
+
   let page = pdf.addPage(A4);
 
   const text = (
@@ -123,9 +146,21 @@ export async function buildDocumentPdf({
     return s + "…";
   };
 
-  // ---- Kopf: Werkstattname links, Kontakt rechts ----
-  text(settings.name, M_LEFT, 785, 16, bold);
-  text("KFZ-Werkstatt", M_LEFT, 770, 9, font, GRAY);
+  // ---- Kopf: Logo bzw. Werkstattname links, Kontakt rechts ----
+  if (logoImg) {
+    const maxW = 180;
+    const maxH = 44;
+    const scale = Math.min(maxW / logoImg.width, maxH / logoImg.height, 1);
+    page.drawImage(logoImg, {
+      x: M_LEFT,
+      y: 812 - logoImg.height * scale,
+      width: logoImg.width * scale,
+      height: logoImg.height * scale,
+    });
+  } else {
+    text(settings.name, M_LEFT, 785, 16, bold);
+    text("KFZ-Werkstatt", M_LEFT, 770, 9, font, GRAY);
+  }
 
   const headRight: string[] = [];
   if (settings.street) headRight.push(settings.street);

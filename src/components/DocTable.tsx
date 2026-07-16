@@ -46,6 +46,8 @@ export function DocRowList({ docs, showCustomer = true }: { docs: DocWithRefs[];
 export function DocTable({ docs }: { docs: DocWithRefs[] }) {
   return (
     <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
+      <div className="overflow-x-auto">
+      <div className="min-w-[760px]">
       <div className="grid grid-cols-[1.1fr_1.6fr_1.4fr_1fr_1fr_150px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
         <div>Nummer</div>
         <div>Kunde</div>
@@ -73,6 +75,8 @@ export function DocTable({ docs }: { docs: DocWithRefs[] }) {
           </div>
         </Link>
       ))}
+      </div>
+      </div>
       {docs.length === 0 && (
         <div className="px-5 py-10 text-center text-[13px] text-[#86868b]">
           Noch keine Einträge.

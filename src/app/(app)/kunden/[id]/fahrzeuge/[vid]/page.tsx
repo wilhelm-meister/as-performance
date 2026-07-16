@@ -21,7 +21,7 @@ export default async function FahrzeugBearbeitenPage({
   return (
     <>
       <Topbar title={`${vehicle.plate} bearbeiten`} />
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[720px] mx-auto anim-fadein">
           <Link
             href={`/kunden/${id}`}

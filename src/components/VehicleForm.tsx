@@ -47,7 +47,7 @@ export function VehicleForm({
         </div>
 
         <div className="px-6 py-[22px] flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
                 Kennzeichen *

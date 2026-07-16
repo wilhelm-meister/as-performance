@@ -52,21 +52,21 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         </div>
 
         <div className="px-6 py-[22px] flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Field label="Werkstattname *" name="name" required defaultValue={settings.name} />
             <Field label="Inhaber" name="owner_name" placeholder="Vor- und Nachname" defaultValue={settings.owner_name} />
           </div>
-          <div className="grid grid-cols-[2fr_110px_1fr] gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr_110px_1fr] gap-3.5">
             <Field label="Straße und Hausnummer" name="street" defaultValue={settings.street} />
             <Field label="PLZ" name="zip" defaultValue={settings.zip} />
             <Field label="Ort" name="city" defaultValue={settings.city} />
           </div>
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Field label="Telefon" name="phone" defaultValue={settings.phone} />
             <Field label="E-Mail (Antwortadresse)" name="email" defaultValue={settings.email} />
           </div>
 
-          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-2 gap-3.5">
+          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Field label="Steuernummer" name="tax_number" defaultValue={settings.tax_number} />
             <Field label="USt-IdNr. (optional)" name="vat_id" defaultValue={settings.vat_id} />
           </div>
@@ -89,13 +89,13 @@ export function SettingsForm({ settings }: { settings: Settings }) {
             </div>
           </div>
 
-          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-3 gap-3.5">
+          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <Field label="Bank" name="bank_name" defaultValue={settings.bank_name} />
             <Field label="IBAN" name="iban" mono defaultValue={settings.iban} />
             <Field label="BIC" name="bic" mono defaultValue={settings.bic} />
           </div>
 
-          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-3 gap-3.5">
+          <div className="border-t border-[#ececf0] pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <Field
               label="Stundensatz (€ netto)"
               name="hourly_rate"

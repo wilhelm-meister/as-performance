@@ -129,7 +129,7 @@ export function VinLookupFields({ initial }: { initial?: Initial }) {
         )}
       </Labeled>
 
-      <div className="grid grid-cols-[1fr_120px] gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3.5">
         <Labeled label="Marke / Modell">
           <input
             name="model"
@@ -150,7 +150,7 @@ export function VinLookupFields({ initial }: { initial?: Initial }) {
         </Labeled>
       </div>
 
-      <div className="grid grid-cols-2 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <Labeled label="Kraftstoff">
           <input
             name="fuel"

@@ -65,7 +65,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
         </div>
 
         <div className="px-6 py-[22px] flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Field label="Name *" name="name" placeholder="Vor- und Nachname" required defaultValue={v("name", customer?.name)} />
             <Field label="Firma" name="company" placeholder="optional" defaultValue={v("company", customer?.company)} />
             <Field label="Telefon" name="phone" placeholder="0170 …" defaultValue={v("phone", customer?.phone)} />
@@ -77,7 +77,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
               Anschrift{" "}
               <span className="text-[#86868b] font-normal">(erscheint auf Rechnungen)</span>
             </div>
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <Field label="Straße und Hausnummer" name="street" placeholder="Musterstraße 12" defaultValue={v("street", customer?.street)} />
               <div className="grid grid-cols-[110px_1fr] gap-3.5">
                 <Field label="PLZ" name="zip" placeholder="28195" defaultValue={v("zip", customer?.zip)} />
@@ -91,7 +91,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
               <div className="text-[13px] font-semibold">
                 Erstes Fahrzeug <span className="text-[#86868b] font-normal">(optional)</span>
               </div>
-              <div className="grid grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <Field label="Kennzeichen" name="plate" placeholder="VER-AS 123" mono defaultValue={v("plate")} />
                 <Field label="KM-Stand" name="km" placeholder="85000" mono defaultValue={v("km")} />
               </div>

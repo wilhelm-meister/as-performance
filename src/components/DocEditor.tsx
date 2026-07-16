@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CustomerWithVehicles, DocWithRefs, Item, ItemType } from "@/lib/types";
+import type { CustomerWithVehicles, DocWithRefs, Item, ItemType, Product } from "@/lib/types";
 import { computeTotals, lineTotal } from "@/lib/totals";
 import {
   ITEM_TYPE_LABEL,
@@ -105,6 +105,7 @@ export function DocEditor({
   doc,
   docType,
   customers,
+  products,
   hourlyRate,
   defaultVatRate,
   convertedNumber,
@@ -114,6 +115,7 @@ export function DocEditor({
   doc: DocWithRefs | null;
   docType: "quote" | "invoice";
   customers: CustomerWithVehicles[];
+  products: Product[];
   hourlyRate: number;
   defaultVatRate: number;
   convertedNumber?: string | null;
@@ -288,7 +290,7 @@ export function DocEditor({
       )}
 
       <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-[#ececf0] flex items-center justify-between">
+        <div className="px-4 md:px-6 py-5 border-b border-[#ececf0] flex items-center justify-between gap-2 flex-wrap">
           <div>
             <div className="text-[18px] font-bold tracking-[-0.3px]">
               {doc ? `${noun} bearbeiten` : `${noun} – Neu`}
@@ -317,7 +319,7 @@ export function DocEditor({
           </div>
         ) : (
           <>
-            <div className="px-6 py-[22px] grid grid-cols-2 gap-[18px] border-b border-[#ececf0]">
+            <div className="px-4 md:px-6 py-[18px] md:py-[22px] grid grid-cols-1 md:grid-cols-2 gap-3.5 md:gap-[18px] border-b border-[#ececf0]">
               <div>
                 <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
                   Kunde
@@ -358,7 +360,7 @@ export function DocEditor({
             </div>
 
             {vehicle && (
-              <div className="px-6 py-3.5 grid grid-cols-3 gap-4 bg-[#fafafc] border-b border-[#ececf0]">
+              <div className="px-4 md:px-6 py-3.5 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4 bg-[#fafafc] border-b border-[#ececf0]">
                 <div>
                   <div className="text-[11px] text-[#86868b] uppercase tracking-[0.4px] mb-[3px]">
                     Kennzeichen
@@ -386,18 +388,40 @@ export function DocEditor({
                   )}
                 </div>
                 {vehicleDetails(vehicle) && (
-                  <div className="col-span-3 text-[12px] text-[#86868b] -mt-1">
+                  <div className="col-span-2 sm:col-span-3 text-[12px] text-[#86868b] -mt-1">
                     {vehicleDetails(vehicle)}
                   </div>
                 )}
               </div>
             )}
 
-            <div className="px-6 py-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="px-4 md:px-6 py-5">
+              <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                 <div className="font-semibold text-[14px]">Positionen</div>
                 {!readOnly && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {products.length > 0 && (
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const p = products.find((x) => x.id === e.target.value);
+                          if (p) {
+                            setItems((prev) => [
+                              ...prev,
+                              { type: p.type, desc: p.name, qty: 1, price: Number(p.price) },
+                            ]);
+                          }
+                        }}
+                        className="h-8 px-2.5 border border-[#e5e5e7] rounded-[7px] bg-white text-[12.5px] font-medium cursor-pointer outline-none hover:border-[#0071e3] hover:text-[#0071e3] max-w-[220px]"
+                      >
+                        <option value="">+ Aus Katalog…</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {ITEM_TYPE_LABEL[p.type]} · {p.name} · {euro(Number(p.price))}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <button
                       type="button"
                       onClick={() => addItem("labor")}
@@ -424,6 +448,8 @@ export function DocEditor({
               </div>
 
               <div className="border border-[#ececf0] rounded-[10px] overflow-hidden">
+                <div className="overflow-x-auto">
+                <div className="min-w-[620px]">
                 <div className="grid grid-cols-[80px_1fr_80px_110px_110px_36px] gap-2 px-3.5 py-[9px] bg-[#fafafc] border-b border-[#ececf0] text-[11px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
                   <div>Art</div>
                   <div>Bezeichnung</div>
@@ -501,6 +527,8 @@ export function DocEditor({
                     hinzufügen.
                   </div>
                 )}
+                </div>
+                </div>
               </div>
 
               <div className="flex justify-end mt-[18px]">

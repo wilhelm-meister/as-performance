@@ -90,11 +90,20 @@ export type Settings = {
   payment_days: number;
   quote_validity_days: number;
   small_business: boolean;
+  logo_url: string;
   updated_at: string;
 };
 
 export type Member = {
   email: string;
   role: string;
+  created_at: string;
+};
+
+export type Product = {
+  id: string;
+  type: ItemType;
+  name: string;
+  price: number;
   created_at: string;
 };

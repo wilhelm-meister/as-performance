@@ -16,7 +16,7 @@ export default async function NeuesFahrzeugPage({
   return (
     <>
       <Topbar title={`Fahrzeug für ${customer.name}`} />
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[720px] mx-auto anim-fadein">
           <Link
             href={`/kunden/${id}`}

@@ -34,10 +34,10 @@ export default async function RechnungenPage({
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Neue Rechnung
+          <span className="hidden sm:inline">Neue Rechnung</span>
         </Link>
       </Topbar>
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <OkBanner message={ok} />
           <div className="flex items-center justify-between mb-4">

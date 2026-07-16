@@ -13,7 +13,7 @@ function KpiCard({ label, value, sub }: { label: string; value: string; sub: str
         <span className="w-2 h-2 rounded-full bg-[#d2d2d7]" />
         {label}
       </div>
-      <div className="text-[26px] font-bold font-mono tracking-[-1px]">{value}</div>
+      <div className="text-[22px] md:text-[26px] font-bold font-mono tracking-[-1px]">{value}</div>
       <div className="text-[12px] text-[#86868b] mt-1">{sub}</div>
     </div>
   );
@@ -80,11 +80,11 @@ export default async function DashboardPage({
   return (
     <>
       <Topbar title="Dashboard" />
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <OkBanner message={ok} />
 
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
             <KpiCard
               label="Offene Forderungen"
               value={euro(openSum)}
@@ -97,7 +97,7 @@ export default async function DashboardPage({
 
           <RevenueChart invoices={invoices} year={thisYear} />
 
-          <div className="grid grid-cols-[1.6fr_1fr] gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4">
             <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-[#ececf0] flex items-center justify-between">
                 <div className="font-semibold text-[14.5px]">Letzte Vorgänge</div>

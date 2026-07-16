@@ -31,7 +31,7 @@ export default async function KundenDetailPage({
   return (
     <>
       <Topbar title="Kundendetails" />
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <Link href="/kunden" className="text-[13px] text-[#0071e3] hover:text-[#0060c9] inline-flex items-center gap-1 mb-3.5">
             ← Zurück zu Kunden
@@ -39,7 +39,7 @@ export default async function KundenDetailPage({
 
           <OkBanner message={ok} />
 
-          <div className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-[22px] mb-4 flex items-center gap-[18px]">
+          <div className="bg-white border border-[#e5e5e7] rounded-xl px-4 md:px-6 py-[18px] md:py-[22px] mb-4 flex items-center gap-3.5 md:gap-[18px] flex-wrap">
             <div className="w-14 h-14 rounded-xl bg-[#f0f0f2] flex items-center justify-center text-[19px] font-semibold text-[#424245] shrink-0">
               {initials(customer.name)}
             </div>
@@ -66,7 +66,7 @@ export default async function KundenDetailPage({
             </Link>
           </div>
 
-          <div className="grid grid-cols-[1fr_1.5fr] gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-4">
             <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden self-start">
               <div className="px-5 py-[15px] border-b border-[#ececf0] flex items-center justify-between">
                 <span className="font-semibold text-[14px]">Fahrzeuge</span>

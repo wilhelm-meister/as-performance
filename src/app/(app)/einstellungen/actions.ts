@@ -54,6 +54,86 @@ export async function updateSettingsAction(
   return { ok: true };
 }
 
+export async function uploadLogoAction(
+  _prev: SettingsState,
+  fd: FormData
+): Promise<SettingsState> {
+  const file = fd.get("logo");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Bitte zuerst eine Bilddatei auswählen." };
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    return { error: "Das Logo darf höchstens 2 MB groß sein." };
+  }
+
+  // Dateityp anhand der Signatur erkennen — Endung/Deklaration sind unzuverlässig
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isPng =
+    bytes.length > 3 &&
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  const isJpg = bytes.length > 2 && bytes[0] === 0xff && bytes[1] === 0xd8;
+  if (!isPng && !isJpg) {
+    return { error: "Die Datei ist kein gültiges PNG oder JPG." };
+  }
+  const ext = isPng ? "png" : "jpg";
+  const contentType = isPng ? "image/png" : "image/jpeg";
+
+  const supabase = await createClient();
+  const path = `logo-${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("logos")
+    .upload(path, bytes, { contentType, upsert: true });
+  if (uploadError) {
+    return { error: "Upload fehlgeschlagen — bitte erneut versuchen." };
+  }
+
+  const { data: pub } = supabase.storage.from("logos").getPublicUrl(path);
+
+  // altes Logo aufräumen
+  const { data: s } = await supabase
+    .from("workshop_settings")
+    .select("logo_url")
+    .eq("id", 1)
+    .maybeSingle();
+  const oldPath = (s?.logo_url ?? "").split("/logos/")[1];
+  if (oldPath) {
+    await supabase.storage.from("logos").remove([oldPath]);
+  }
+
+  const { error } = await supabase
+    .from("workshop_settings")
+    .update({ logo_url: pub.publicUrl, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (error) return { error: "Speichern fehlgeschlagen." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export async function removeLogoAction() {
+  const supabase = await createClient();
+  const { data: s } = await supabase
+    .from("workshop_settings")
+    .select("logo_url")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const oldPath = (s?.logo_url ?? "").split("/logos/")[1];
+  if (oldPath) {
+    await supabase.storage.from("logos").remove([oldPath]);
+  }
+
+  const { error } = await supabase
+    .from("workshop_settings")
+    .update({ logo_url: "", updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  if (error) return { error: "Entfernen fehlgeschlagen." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function addMemberAction(fd: FormData) {
   const email = str(fd, "email").toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

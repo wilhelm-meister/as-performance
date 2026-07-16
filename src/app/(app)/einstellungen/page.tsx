@@ -3,6 +3,7 @@ import { mailConfigured, mailFrom } from "@/lib/mail";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { SettingsForm } from "@/components/SettingsForm";
+import { LogoCard } from "@/components/LogoCard";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { addMemberAction, removeMemberAction } from "./actions";
 
@@ -29,7 +30,7 @@ export default async function EinstellungenPage({
       <Topbar title="Einstellungen">
         <div />
       </Topbar>
-      <main className="flex-1 overflow-y-auto p-7">
+      <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[840px] mx-auto anim-fadein flex flex-col gap-4">
           <OkBanner message={ok} />
           {err && (
@@ -39,6 +40,8 @@ export default async function EinstellungenPage({
           )}
 
           <SettingsForm settings={settings} />
+
+          <LogoCard logoUrl={settings.logo_url ?? ""} />
 
           <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
             <div className="px-6 py-5 border-b border-[#ececf0]">
