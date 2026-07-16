@@ -1,0 +1,128 @@
+"use client";
+
+import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import type { Customer } from "@/lib/types";
+import type { FormState } from "@/app/(app)/kunden/actions";
+import { createCustomerAction, updateCustomerAction } from "@/app/(app)/kunden/actions";
+
+function Field({
+  label,
+  name,
+  placeholder,
+  defaultValue,
+  required,
+  mono,
+}: {
+  label: React.ReactNode;
+  name: string;
+  placeholder?: string;
+  defaultValue?: string;
+  required?: boolean;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">{label}</label>
+      <input
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        placeholder={placeholder}
+        required={required}
+        className={`w-full h-10 border border-[#e5e5e7] rounded-lg px-3 text-[14px] outline-none focus:border-[#0071e3] bg-white ${mono ? "font-mono" : ""}`}
+      />
+    </div>
+  );
+}
+
+export function CustomerForm({ customer }: { customer?: Customer }) {
+  const router = useRouter();
+  const isNew = !customer;
+
+  const action = async (prev: FormState, fd: FormData) => {
+    const r = isNew
+      ? await createCustomerAction(prev, fd)
+      : await updateCustomerAction(customer.id, prev, fd);
+    if (r?.ok && r.id) {
+      router.push(
+        `/kunden/${r.id}?ok=${encodeURIComponent(isNew ? "Kunde angelegt" : "Änderungen gespeichert")}`
+      );
+    }
+    return r;
+  };
+
+  const [state, formAction, pending] = useActionState(action, null);
+  const v = (key: string, fallback = "") => state?.values?.[key] ?? fallback;
+
+  return (
+    <form action={formAction}>
+      <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#ececf0]">
+          <div className="text-[17px] font-bold">
+            {isNew ? "Neuen Kunden anlegen" : "Kunden bearbeiten"}
+          </div>
+        </div>
+
+        <div className="px-6 py-[22px] flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
+            <Field label="Name *" name="name" placeholder="Vor- und Nachname" required defaultValue={v("name", customer?.name)} />
+            <Field label="Firma" name="company" placeholder="optional" defaultValue={v("company", customer?.company)} />
+            <Field label="Telefon" name="phone" placeholder="0170 …" defaultValue={v("phone", customer?.phone)} />
+            <Field label="E-Mail" name="email" placeholder="name@mail.de" defaultValue={v("email", customer?.email)} />
+          </div>
+
+          <div className="border-t border-[#ececf0] pt-4">
+            <div className="text-[13px] font-semibold mb-3">
+              Anschrift{" "}
+              <span className="text-[#86868b] font-normal">(erscheint auf Rechnungen)</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3.5">
+              <Field label="Straße und Hausnummer" name="street" placeholder="Musterstraße 12" defaultValue={v("street", customer?.street)} />
+              <div className="grid grid-cols-[110px_1fr] gap-3.5">
+                <Field label="PLZ" name="zip" placeholder="28195" defaultValue={v("zip", customer?.zip)} />
+                <Field label="Ort" name="city" placeholder="Bremen" defaultValue={v("city", customer?.city)} />
+              </div>
+            </div>
+          </div>
+
+          {isNew && (
+            <div className="border-t border-[#ececf0] pt-4">
+              <div className="text-[13px] font-semibold mb-3">
+                Erstes Fahrzeug <span className="text-[#86868b] font-normal">(optional)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3.5">
+                <Field label="Kennzeichen" name="plate" placeholder="HB-AS 1234" mono defaultValue={v("plate")} />
+                <Field label="Marke / Modell" name="model" placeholder="BMW 320d" defaultValue={v("model")} />
+                <Field label="VIN" name="vin" placeholder="WBA…" mono defaultValue={v("vin")} />
+                <Field label="KM-Stand" name="km" placeholder="85000" mono defaultValue={v("km")} />
+              </div>
+            </div>
+          )}
+
+          {state?.error && (
+            <div className="rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-4 py-3 text-[13px] text-[#c9362b]">
+              {state.error}
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-[#ececf0] bg-[#fafafc] flex justify-end gap-2.5">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="h-10 px-[18px] border border-[#e5e5e7] rounded-lg bg-white font-semibold text-[14px] cursor-pointer hover:border-[#0071e3] hover:text-[#0071e3]"
+          >
+            Abbrechen
+          </button>
+          <button
+            type="submit"
+            disabled={pending}
+            className="h-10 px-[22px] rounded-lg bg-[#0071e3] text-white font-semibold text-[14px] cursor-pointer hover:bg-[#0060c9] disabled:opacity-60"
+          >
+            {pending ? "Speichert…" : "Kunde speichern"}
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+}
