@@ -77,7 +77,7 @@ export function Sidebar({
 
   return (
     <aside className="w-[60px] md:w-[248px] shrink-0 bg-[#1d1d1f] flex flex-col text-[#a1a1a6]">
-      <div className="px-0 md:px-5 pt-[22px] pb-5 flex items-center justify-center md:justify-start gap-[11px] border-b border-[#313135]">
+      <div className="px-0 md:px-5 h-[60px] shrink-0 flex items-center justify-center md:justify-start gap-[11px] border-b border-[#313135]">
         <div className="w-[38px] h-[38px] rounded-[9px] bg-[#2c2c2e] flex items-center justify-center font-mono font-semibold text-[15px] text-white tracking-[-0.5px] shrink-0">
           AS
         </div>
