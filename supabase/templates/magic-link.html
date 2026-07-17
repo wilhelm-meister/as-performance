@@ -1,0 +1,66 @@
+<!--
+  Anmelde-Mail im AS-Performance-Design.
+  Einfügen unter: Supabase → Authentication → Emails → "Magic Link"
+  Betreff: Dein Anmelde-Link für AS Performance
+  (Optional identisch bei "Confirm signup" einfügen — greift, falls eine
+  unbekannte E-Mail-Adresse einen Link anfordert.)
+-->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f7;padding:40px 16px;">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;">
+
+        <!-- Kopf: Logo + Name -->
+        <tr>
+          <td align="center" style="padding-bottom:22px;">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="44" height="44" align="center" valign="middle" style="background-color:#1d1d1f;border-radius:10px;color:#ffffff;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:17px;font-weight:600;letter-spacing:-0.5px;">
+                  AS
+                </td>
+                <td style="padding-left:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;text-align:left;">
+                  <div style="font-size:17px;font-weight:600;color:#1d1d1f;letter-spacing:-0.2px;">AS Performance</div>
+                  <div style="font-size:12px;color:#6e6e73;letter-spacing:0.3px;">Werkstatt-Verwaltung</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Karte -->
+        <tr>
+          <td style="background-color:#ffffff;border:1px solid #e5e5e7;border-radius:14px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;text-align:left;">
+            <h1 style="margin:0 0 8px;font-size:19px;font-weight:700;color:#1d1d1f;letter-spacing:-0.3px;">Anmelden</h1>
+            <p style="margin:0 0 22px;font-size:14px;color:#6e6e73;line-height:1.55;">
+              Klick auf den Knopf, um dich in deiner Werkstatt-Verwaltung anzumelden.
+              Kein Passwort nötig.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="background-color:#0071e3;border-radius:9px;">
+                  <a href="{{ .ConfirmationURL }}" target="_blank" style="display:block;padding:13px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;font-weight:600;color:#ffffff;text-decoration:none;">
+                    Jetzt anmelden
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:22px 0 0;font-size:12px;color:#86868b;line-height:1.55;">
+              Der Link funktioniert nur einmal — und nur auf dem Gerät, auf dem du ihn
+              gerade angefordert hast.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Fußzeile -->
+        <tr>
+          <td align="center" style="padding-top:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#86868b;line-height:1.6;">
+            Diese E-Mail ging an {{ .Email }}, weil damit eine Anmeldung<br>
+            bei AS Performance angefordert wurde.<br>
+            Warst du das nicht, kannst du sie einfach ignorieren.
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

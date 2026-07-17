@@ -1,11 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomer, listDocs } from "@/lib/data";
-import { formatKm, initials, vehicleDetails } from "@/lib/format";
+import { formatDate, formatKm, initials, vehicleDetails } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { DocRowList } from "@/components/DocTable";
 import { PlateChip } from "@/components/PlateChip";
+
+const EMPTY = <span className="text-[#c7c7cc] font-normal">—</span>;
+
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[11px] uppercase tracking-[0.6px] text-[#86868b] font-semibold mb-1">
+        {label}
+      </div>
+      <div className="text-[14px] font-medium break-words">{children}</div>
+    </div>
+  );
+}
 
 export default async function KundenDetailPage({
   params,
@@ -21,9 +34,6 @@ export default async function KundenDetailPage({
   if (!customer) notFound();
 
   const customerDocs = docs.filter((d) => d.customer_id === id);
-  const contact = [customer.company, customer.phone, customer.email]
-    .filter(Boolean)
-    .join("  ·  ");
   const address = [customer.street, [customer.zip, customer.city].filter(Boolean).join(" ")]
     .filter(Boolean)
     .join(", ");
@@ -39,31 +49,63 @@ export default async function KundenDetailPage({
 
           <OkBanner message={ok} />
 
-          <div className="bg-white border border-[#e5e5e7] rounded-xl px-4 md:px-6 py-[18px] md:py-[22px] mb-4 flex items-center gap-3.5 md:gap-[18px] flex-wrap">
-            <div className="w-14 h-14 rounded-xl bg-[#f0f0f2] flex items-center justify-center text-[19px] font-semibold text-[#424245] shrink-0">
-              {initials(customer.name)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold tracking-[-0.3px]">{customer.name}</div>
-              <div className="text-[13.5px] text-[#6e6e73] mt-[3px] truncate">
-                {contact || "Keine Kontaktdaten hinterlegt"}
+          <div className="bg-white border border-[#e5e5e7] rounded-xl mb-4 overflow-hidden">
+            <div className="px-4 md:px-6 py-[18px] md:py-[22px] flex items-center gap-3.5 md:gap-[18px] flex-wrap">
+              <div className="w-14 h-14 rounded-xl bg-[#f0f0f2] flex items-center justify-center text-[19px] font-semibold text-[#424245] shrink-0">
+                {initials(customer.name)}
               </div>
-              {address && (
-                <div className="text-[12.5px] text-[#86868b] mt-0.5">{address}</div>
-              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-[20px] font-bold tracking-[-0.3px]">{customer.name}</div>
+                <div className="text-[13px] text-[#86868b] mt-[3px]">
+                  Kunde seit {formatDate(customer.created_at)}
+                </div>
+              </div>
+              <Link
+                href={`/kunden/${id}/bearbeiten`}
+                className="h-[38px] px-4 border border-[#e5e5e7] rounded-lg bg-white font-semibold text-[13.5px] inline-flex items-center hover:border-[#0071e3] hover:text-[#0071e3]"
+              >
+                Bearbeiten
+              </Link>
+              <Link
+                href={`/belege/neu?type=quote&customer=${id}`}
+                className="h-[38px] px-4 rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center hover:bg-[#0060c9]"
+              >
+                + Angebot für Kunden
+              </Link>
             </div>
-            <Link
-              href={`/kunden/${id}/bearbeiten`}
-              className="h-[38px] px-4 border border-[#e5e5e7] rounded-lg bg-white font-semibold text-[13.5px] inline-flex items-center hover:border-[#0071e3] hover:text-[#0071e3]"
-            >
-              Bearbeiten
-            </Link>
-            <Link
-              href={`/belege/neu?type=quote&customer=${id}`}
-              className="h-[38px] px-4 rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center hover:bg-[#0060c9]"
-            >
-              + Angebot für Kunden
-            </Link>
+
+            <div className="px-4 md:px-6 py-4 border-t border-[#ececf0] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4">
+              <Fact label="Telefon">
+                {customer.phone ? (
+                  <a href={`tel:${customer.phone}`} className="text-[#0071e3] hover:text-[#0060c9]">
+                    {customer.phone}
+                  </a>
+                ) : (
+                  EMPTY
+                )}
+              </Fact>
+              <Fact label="E-Mail">
+                {customer.email ? (
+                  <a href={`mailto:${customer.email}`} className="text-[#0071e3] hover:text-[#0060c9]">
+                    {customer.email}
+                  </a>
+                ) : (
+                  EMPTY
+                )}
+              </Fact>
+              <Fact label="Firma">{customer.company || EMPTY}</Fact>
+              <Fact label="Adresse">{address || EMPTY}</Fact>
+            </div>
+
+            {customer.notes && (
+              <div className="px-4 md:px-6 py-4 border-t border-[#ececf0]">
+                <Fact label="Notizen">
+                  <span className="whitespace-pre-wrap font-normal text-[#424245]">
+                    {customer.notes}
+                  </span>
+                </Fact>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-4">
