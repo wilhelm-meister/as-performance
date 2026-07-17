@@ -58,6 +58,14 @@ async function listCandidates(key: string): Promise<{ models?: string[]; error?:
   return { models };
 }
 
+/** Halter laut Fahrzeugschein (Feld C) — Vorschlag für einen Kunden. */
+export type HolderExtract = {
+  name: string;
+  street: string;
+  zip: string;
+  city: string;
+};
+
 /** Fertige, ins Fahrzeug übernehmbare Felder — alles editierbar, nichts blind vertrauen. */
 export type VehicleExtract = {
   plate: string;
@@ -69,6 +77,7 @@ export type VehicleExtract = {
   engine: string;
   hsn: string;
   tsn: string;
+  holder: HolderExtract | null;
 };
 
 type Raw = {
@@ -82,6 +91,11 @@ type Raw = {
   leistung_kw?: string;
   hsn?: string;
   tsn?: string;
+  halter_name?: string;
+  halter_vorname?: string;
+  halter_strasse?: string;
+  halter_plz?: string;
+  halter_ort?: string;
 };
 
 const FUEL_MAP: Record<string, string> = {
@@ -128,6 +142,18 @@ function buildEngine(ccm: string, kw: string): string {
   return parts.join(" · ");
 }
 
+function mapHolder(raw: Raw): HolderExtract | null {
+  const name = [raw.halter_vorname, raw.halter_name]
+    .map((x) => (x ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  const street = (raw.halter_strasse ?? "").trim();
+  const zip = (raw.halter_plz ?? "").replace(/[^\d]/g, "").trim();
+  const city = (raw.halter_ort ?? "").trim();
+  if (!name && !street && !city) return null;
+  return { name, street, zip, city };
+}
+
 function mapRaw(raw: Raw): VehicleExtract {
   const date = parseDate(raw.erstzulassung ?? "");
   const model = [raw.marke, raw.typ].map((x) => (x ?? "").trim()).filter(Boolean).join(" ");
@@ -141,6 +167,7 @@ function mapRaw(raw: Raw): VehicleExtract {
     engine: buildEngine(raw.hubraum_ccm ?? "", raw.leistung_kw ?? ""),
     hsn: (raw.hsn ?? "").trim(),
     tsn: (raw.tsn ?? "").trim(),
+    holder: mapHolder(raw),
   };
 }
 
@@ -157,7 +184,12 @@ Wenn ein Feld nicht sicher lesbar oder nicht vorhanden ist, gib einen leeren Str
 - hubraum_ccm: Hubraum in cm³ (Feld P.1, nur Zahl)
 - leistung_kw: Nennleistung in kW (Feld P.2, nur Zahl)
 - hsn: Herstellerschlüsselnummer (Feld 2.1, 4 Ziffern)
-- tsn: Typschlüsselnummer (Feld 2.2)`;
+- tsn: Typschlüsselnummer (Feld 2.2)
+- halter_name: Name oder Firmenname des Halters (Feld C.1.1)
+- halter_vorname: Vorname des Halters (Feld C.1.2, bei Firmen leer)
+- halter_strasse: Straße und Hausnummer des Halters (aus Anschrift Feld C.1.3)
+- halter_plz: Postleitzahl des Halters (aus Feld C.1.3, 5 Ziffern)
+- halter_ort: Wohnort/Ort des Halters (aus Feld C.1.3)`;
 
 const SCHEMA = {
   type: "OBJECT",
@@ -172,6 +204,11 @@ const SCHEMA = {
     leistung_kw: { type: "STRING" },
     hsn: { type: "STRING" },
     tsn: { type: "STRING" },
+    halter_name: { type: "STRING" },
+    halter_vorname: { type: "STRING" },
+    halter_strasse: { type: "STRING" },
+    halter_plz: { type: "STRING" },
+    halter_ort: { type: "STRING" },
   },
 } as const;
 

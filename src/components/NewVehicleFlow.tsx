@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import type { Customer } from "@/lib/types";
+import type { HolderExtract } from "@/lib/gemini";
 import { VehicleEditor, type VehiclePrefill } from "./VehicleEditor";
 import { scanFahrzeugscheinAction } from "@/app/(app)/fahrzeuge/actions";
 
@@ -76,6 +77,7 @@ export function NewVehicleFlow({
 }) {
   const [mode, setMode] = useState<Mode>("choose");
   const [prefill, setPrefill] = useState<VehiclePrefill | undefined>();
+  const [holder, setHolder] = useState<HolderExtract | null>(null);
   const [documentPath, setDocumentPath] = useState<string | undefined>();
   const [preview, setPreview] = useState<string | undefined>();
   const [scanError, setScanError] = useState<string | null>(null);
@@ -102,6 +104,7 @@ export function NewVehicleFlow({
         return;
       }
       setPrefill(r.data);
+      setHolder(r.data.holder);
       setDocumentPath(r.documentPath);
       setPreview(previewUrl);
       setMode("form");
@@ -114,6 +117,7 @@ export function NewVehicleFlow({
         customers={customers}
         presetCustomerId={presetCustomerId}
         prefill={mode === "form" ? prefill : undefined}
+        holder={mode === "form" ? holder : undefined}
         documentPath={mode === "form" ? documentPath : undefined}
         documentPreview={mode === "form" ? preview : undefined}
         onBack={() => setMode("choose")}

@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Customer, Vehicle } from "@/lib/types";
+import type { HolderExtract } from "@/lib/gemini";
 import { cleanVin, isValidVin } from "@/lib/vin";
-import { saveVehicleAction } from "@/app/(app)/fahrzeuge/actions";
+import { createCustomerFromHolderAction, saveVehicleAction } from "@/app/(app)/fahrzeuge/actions";
 
 export type VehiclePrefill = {
   plate?: string;
@@ -19,8 +20,22 @@ export type VehiclePrefill = {
   km?: string;
 };
 
+type LeanCustomer = Pick<Customer, "id" | "name" | "company">;
+
 const field =
   "w-full h-10 border border-[#e5e5e7] rounded-lg px-3 text-[14px] outline-none focus:border-[#0071e3] bg-white";
+
+const normName = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+
+// Halter grob einem bestehenden Kunden zuordnen (verhindert Dubletten)
+function matchHolder(name: string, list: LeanCustomer[]): LeanCustomer | undefined {
+  const n = normName(name);
+  if (n.length < 3) return undefined;
+  return list.find((c) => {
+    const cn = normName(c.name);
+    return cn.length >= 3 && (cn === n || cn.includes(n) || n.includes(cn));
+  });
+}
 
 function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -33,18 +48,20 @@ function Labeled({ label, children }: { label: string; children: React.ReactNode
 
 export function VehicleEditor({
   vehicle,
-  customers,
+  customers: customersProp,
   presetCustomerId,
   prefill,
+  holder,
   documentPath,
   documentPreview,
   existingDocUrl,
   onBack,
 }: {
   vehicle?: Vehicle;
-  customers: Pick<Customer, "id" | "name" | "company">[];
+  customers: LeanCustomer[];
   presetCustomerId?: string;
   prefill?: VehiclePrefill;
+  holder?: HolderExtract | null;
   documentPath?: string;
   documentPreview?: string;
   existingDocUrl?: string | null;
@@ -54,9 +71,14 @@ export function VehicleEditor({
   const isNew = !vehicle;
   const init = prefill ?? {};
 
+  const [customers, setCustomers] = useState<LeanCustomer[]>(customersProp);
+  // Halter aus dem Schein ggf. einem bestehenden Kunden zuordnen (verhindert Dubletten)
+  const holderMatch = holder?.name ? matchHolder(holder.name, customersProp) : undefined;
+  const [holderDone, setHolderDone] = useState(false);
+
   const [plate, setPlate] = useState(vehicle?.plate ?? init.plate ?? "");
   const [customerId, setCustomerId] = useState(
-    vehicle?.customer_id ?? presetCustomerId ?? ""
+    vehicle?.customer_id ?? presetCustomerId ?? holderMatch?.id ?? ""
   );
   const [vin, setVin] = useState(vehicle?.vin ?? init.vin ?? "");
   const [model, setModel] = useState(vehicle?.model ?? init.model ?? "");
@@ -80,6 +102,26 @@ export function VehicleEditor({
   const [looking, setLooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+
+  const takeHolder = () => {
+    if (!holder?.name) return;
+    setError(null);
+    start(async () => {
+      const r = await createCustomerFromHolderAction({
+        name: holder.name,
+        street: holder.street,
+        zip: holder.zip,
+        city: holder.city,
+      });
+      if (r.id) {
+        setCustomers((prev) => [...prev, { id: r.id!, name: r.name ?? holder.name, company: "" }]);
+        setCustomerId(r.id);
+        setHolderDone(true);
+      } else {
+        setError(r.error ?? "Kunde konnte nicht angelegt werden.");
+      }
+    });
+  };
 
   const lookupVin = async () => {
     const v = cleanVin(vin);
@@ -182,6 +224,46 @@ export function VehicleEditor({
         </div>
 
         <div className="px-4 md:px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {holder?.name && (
+            <div className="sm:col-span-2">
+              {holderMatch ? (
+                <div className="rounded-lg bg-[#f0f7f2] border border-[#bfe3cd] px-4 py-3 text-[13px] text-[#1d6b3f]">
+                  ✓ Halter <strong>{holder.name}</strong> ist bereits Kunde — automatisch zugeordnet.
+                </div>
+              ) : holderDone ? (
+                <div className="rounded-lg bg-[#f0f7f2] border border-[#bfe3cd] px-4 py-3 text-[13px] text-[#1d6b3f]">
+                  ✓ Kunde <strong>{holder.name}</strong> aus dem Fahrzeugschein angelegt und zugeordnet.
+                </div>
+              ) : (
+                <div className="rounded-lg bg-[#f5f8ff] border border-[#b9d4f5] px-4 py-3.5">
+                  <div className="text-[11px] font-semibold text-[#6e6e73] uppercase tracking-[0.5px] mb-1">
+                    Halter laut Fahrzeugschein
+                  </div>
+                  <div className="text-[14px] font-semibold">{holder.name}</div>
+                  {(holder.street || holder.city) && (
+                    <div className="text-[13px] text-[#424245] mt-0.5">
+                      {[holder.street, [holder.zip, holder.city].filter(Boolean).join(" ")]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2.5 flex-wrap mt-2.5">
+                    <button
+                      type="button"
+                      onClick={takeHolder}
+                      disabled={pending}
+                      className="h-9 px-3.5 rounded-lg bg-[#0071e3] text-white font-semibold text-[13px] cursor-pointer hover:bg-[#0060c9] disabled:opacity-60"
+                    >
+                      {pending ? "Legt an…" : "+ Als Kunden übernehmen"}
+                    </button>
+                    <span className="text-[12px] text-[#86868b]">
+                      oder unten manuell einem Kunden zuordnen
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <Labeled label="Kennzeichen">
             <input
               value={plate}

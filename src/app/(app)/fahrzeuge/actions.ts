@@ -72,6 +72,37 @@ export async function saveVehicleAction(
   return { ok: true, id: data.id };
 }
 
+/** Legt aus dem erkannten Halter (Fahrzeugschein Feld C) einen Kunden an. */
+export async function createCustomerFromHolderAction(holder: {
+  name: string;
+  street: string;
+  zip: string;
+  city: string;
+}): Promise<{ id?: string; name?: string; error?: string }> {
+  const name = (holder.name ?? "").trim();
+  if (!name) return { error: "Kein Haltername erkannt." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .insert({
+      name,
+      company: "",
+      phone: "",
+      email: "",
+      street: (holder.street ?? "").trim(),
+      zip: (holder.zip ?? "").trim(),
+      city: (holder.city ?? "").trim(),
+      notes: "Aus Fahrzeugschein übernommen",
+    })
+    .select("id, name")
+    .single();
+  if (error || !data) return { error: "Kunde konnte nicht angelegt werden." };
+
+  revalidatePath("/", "layout");
+  return { id: data.id, name: data.name };
+}
+
 export async function deleteVehicleAction(vehicleId: string) {
   const supabase = await createClient();
 
