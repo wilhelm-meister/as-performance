@@ -44,7 +44,7 @@ export function ConfirmButton({
 
   return (
     <span
-      className={`inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#e5e5e7] rounded-lg px-3 h-9 anim-popin ${className}`}
+      className={`inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#e5e5e7] rounded-lg px-3 min-h-9 anim-popin ${className}`}
     >
       <span className="text-[12.5px] font-medium text-[#424245]">{question}</span>
       <button

@@ -35,7 +35,7 @@ function NavButton({
     <Link
       href={href}
       title={label}
-      className={`relative flex items-center justify-center md:justify-start md:gap-[11px] px-0 md:px-3 py-[9px] rounded-lg text-[13.5px] w-full ${
+      className={`relative flex items-center justify-center md:justify-start md:gap-[11px] px-0 md:px-3 py-3.5 md:py-[9px] rounded-lg text-[13.5px] w-full ${
         active
           ? "bg-[#2c2c2e] text-[#f5f5f7] font-semibold"
           : "text-[#a1a1a6] font-medium hover:text-[#f5f5f7]"
@@ -165,7 +165,9 @@ export function Sidebar({
           }
         />
 
-        <SectionLabel>System</SectionLabel>
+      </nav>
+
+      <div className="px-2 md:px-3 pb-2">
         <NavButton
           href="/einstellungen"
           active={path.startsWith("/einstellungen")}
@@ -177,7 +179,7 @@ export function Sidebar({
             </svg>
           }
         />
-      </nav>
+      </div>
 
       <div className="p-2 md:p-3.5 border-t border-[#313135] flex flex-col md:flex-row items-center gap-2 md:gap-2.5">
         <div
@@ -194,7 +196,7 @@ export function Sidebar({
           <button
             type="submit"
             title="Abmelden"
-            className="text-[#6e6e73] hover:text-[#f5f5f7] cursor-pointer p-1"
+            className="text-[#6e6e73] hover:text-[#f5f5f7] cursor-pointer p-2.5 md:p-1"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

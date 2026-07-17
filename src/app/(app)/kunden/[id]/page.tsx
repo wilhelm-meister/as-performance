@@ -62,13 +62,13 @@ export default async function KundenDetailPage({
               </div>
               <Link
                 href={`/kunden/${id}/bearbeiten`}
-                className="h-[38px] px-4 border border-[#e5e5e7] rounded-lg bg-white font-semibold text-[13.5px] inline-flex items-center hover:border-[#0071e3] hover:text-[#0071e3]"
+                className="h-11 sm:h-[38px] px-4 border border-[#e5e5e7] rounded-lg bg-white font-semibold text-[13.5px] inline-flex items-center hover:border-[#0071e3] hover:text-[#0071e3]"
               >
                 Bearbeiten
               </Link>
               <Link
                 href={`/belege/neu?type=quote&customer=${id}`}
-                className="h-[38px] px-4 rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center hover:bg-[#0060c9]"
+                className="h-11 sm:h-[38px] px-4 rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center hover:bg-[#0060c9]"
               >
                 + Angebot für Kunden
               </Link>

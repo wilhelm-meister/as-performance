@@ -33,3 +33,18 @@ body {
 
 .anim-fadein { animation: fadein 0.25s ease; }
 .anim-popin { animation: popin 0.2s ease; }
+
+/* Fat-Finger-Modus fürs Handy (bewusst ungelayert, schlägt Utilities):
+   16px in Eingabefeldern verhindert den iOS-Auto-Zoom beim Antippen,
+   Knöpfe wachsen auf daumengroße 44px (Apple-Richtwert). */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  button:not([role="switch"]) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

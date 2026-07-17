@@ -61,7 +61,7 @@ function ReminderSendButton({ docId, email }: { docId: string; email: string }) 
   }
 
   return (
-    <span className="inline-flex items-center gap-2 bg-[#f5f8ff] border border-[#b9d4f5] rounded-lg px-3 h-9 anim-popin">
+    <span className="inline-flex items-center gap-2 bg-[#f5f8ff] border border-[#b9d4f5] rounded-lg px-3 min-h-9 anim-popin">
       <span className="text-[12.5px] font-medium text-[#424245]">
         An <strong>{email}</strong> senden?
       </span>
@@ -128,7 +128,7 @@ function SendButton({ docId, email }: { docId: string; email: string }) {
   }
 
   return (
-    <span className="inline-flex items-center gap-2 bg-[#f5f8ff] border border-[#b9d4f5] rounded-lg px-3 h-9 anim-popin">
+    <span className="inline-flex items-center gap-2 bg-[#f5f8ff] border border-[#b9d4f5] rounded-lg px-3 min-h-9 anim-popin">
       <span className="text-[12.5px] font-medium text-[#424245]">
         An <strong>{email}</strong> senden?
       </span>
@@ -590,7 +590,7 @@ export function DocEditor({
               <div className="border border-[#ececf0] rounded-[10px] overflow-hidden">
                 <div className="overflow-x-auto">
                 <div className="min-w-[660px]">
-                <div className="grid grid-cols-[92px_1fr_128px_110px_110px_36px] gap-2 px-3.5 py-[9px] bg-[#fafafc] border-b border-[#ececf0] text-[11px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
+                <div className="grid grid-cols-[92px_1fr_128px_110px_110px_44px] gap-2 px-3.5 py-[9px] bg-[#fafafc] border-b border-[#ececf0] text-[11px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
                   <div>Art</div>
                   <div>Bezeichnung</div>
                   <div className="text-right">Menge</div>
@@ -602,7 +602,7 @@ export function DocEditor({
                 {items.map((it, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[92px_1fr_128px_110px_110px_36px] gap-2 items-center px-3.5 py-2 border-b border-[#f0f0f3]"
+                    className="grid grid-cols-[92px_1fr_128px_110px_110px_44px] gap-2 items-center px-3.5 py-2 border-b border-[#f0f0f3]"
                   >
                     {readOnly ? (
                       <span className="inline-block px-2 py-[3px] rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73] text-center">

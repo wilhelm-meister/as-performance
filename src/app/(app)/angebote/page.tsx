@@ -28,7 +28,7 @@ export default async function AngebotePage({
       <Topbar title="Angebote" search={q} searchAction="/angebote">
         <Link
           href="/belege/neu?type=quote"
-          className="h-9 px-3 md:px-[15px] rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center gap-[7px] hover:bg-[#0060c9] shrink-0"
+          className="h-11 sm:h-9 px-3 md:px-[15px] rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center gap-[7px] hover:bg-[#0060c9] shrink-0"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
