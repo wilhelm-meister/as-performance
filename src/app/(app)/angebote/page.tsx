@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listDocs } from "@/lib/data";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
@@ -24,7 +25,18 @@ export default async function AngebotePage({
 
   return (
     <>
-      <Topbar title="Angebote" search={q} searchAction="/angebote" />
+      <Topbar title="Angebote" search={q} searchAction="/angebote">
+        <Link
+          href="/belege/neu?type=quote"
+          className="h-9 px-3 md:px-[15px] rounded-lg bg-[#0071e3] text-white font-semibold text-[13.5px] inline-flex items-center gap-[7px] hover:bg-[#0060c9] shrink-0"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span className="hidden sm:inline">Neues Angebot</span>
+        </Link>
+      </Topbar>
       <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <OkBanner message={ok} />
