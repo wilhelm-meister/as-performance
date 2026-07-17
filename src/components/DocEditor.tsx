@@ -19,6 +19,7 @@ import {
 } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
+import { CatalogPicker } from "./CatalogPicker";
 import {
   cancelInvoiceAction,
   convertQuoteAction,
@@ -576,39 +577,25 @@ export function DocEditor({
             )}
 
             <div className="px-4 md:px-6 py-5">
-              <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:flex-wrap mb-3 gap-2">
                 <div className="font-semibold text-[14px]">Positionen</div>
                 {!readOnly && (
-                  <div className="flex gap-2 flex-wrap items-center flex-1 sm:justify-end">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 items-stretch sm:items-center flex-1 sm:justify-end">
                     {products.length > 0 && (
-                      <select
-                        value=""
-                        onChange={(e) => {
-                          const p = products.find((x) => x.id === e.target.value);
-                          if (p) {
-                            setItems((prev) => [
-                              ...prev,
-                              {
-                                type: p.type,
-                                desc: p.name,
-                                qty: Number(p.default_qty) || 1,
-                                price: Number(p.price),
-                              },
-                            ]);
-                          }
-                        }}
-                        className="h-9 px-3 flex-1 min-w-[210px] max-w-[380px] border border-[#0071e3] text-[#0071e3] rounded-lg bg-white text-[13px] font-semibold cursor-pointer outline-none hover:bg-[#f5f8ff]"
-                      >
-                        <option value="">+ Position aus Katalog wählen…</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {ITEM_TYPE_LABEL[p.type]} · {p.name} ·{" "}
-                            {p.type === "flat"
-                              ? euro(Number(p.price))
-                              : `${Number(p.default_qty).toLocaleString("de-DE")} ${ITEM_UNIT[p.type]} × ${euro(Number(p.price))}`}
-                          </option>
-                        ))}
-                      </select>
+                      <CatalogPicker
+                        products={products}
+                        onPick={(p) =>
+                          setItems((prev) => [
+                            ...prev,
+                            {
+                              type: p.type,
+                              desc: p.name,
+                              qty: Number(p.default_qty) || 1,
+                              price: Number(p.price),
+                            },
+                          ])
+                        }
+                      />
                     )}
                     <button
                       type="button"
