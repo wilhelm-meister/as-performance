@@ -338,7 +338,21 @@ export async function buildDocumentPdf({
   const items = doc.items ?? [];
   const DESC_W = COL_QTY_R - COL_DESC - 40;
   const DESC_LINE_H = 12;
-  items.forEach((it, i) => {
+
+  // Positionen nach Art gruppieren: Arbeit → Teile → Pauschalen.
+  // Zwischenüberschrift nur, wenn wirklich mehrere Arten vorkommen (sonst unnötig).
+  const GROUPS: { type: string; label: string }[] = [
+    { type: "labor", label: "Arbeit" },
+    { type: "part", label: "Teile" },
+    { type: "flat", label: "Pauschalen" },
+  ];
+  const groups = GROUPS.map((g) => ({
+    label: g.label,
+    rows: items.filter((it) => it.type === g.type),
+  })).filter((g) => g.rows.length > 0);
+  const showHeadings = groups.length > 1;
+
+  const drawItemRow = (it: Doc["items"][number], posNo: number) => {
     const allLines = wrapText(it.desc || "—", DESC_W, 9.5);
     const lines = allLines.slice(0, 10);
     if (allLines.length > 10) {
@@ -351,7 +365,7 @@ export async function buildDocumentPdf({
       drawTableHeader(y, page);
       y -= 24;
     }
-    text(String(i + 1), COL_POS + 4, y, 9.5);
+    text(String(posNo), COL_POS + 4, y, 9.5);
     lines.forEach((ln, j) => text(ln, COL_DESC, y - j * DESC_LINE_H, 9.5));
     rightText(qtyPdf(it.qty), COL_QTY_R, y, 9.5);
     text(ITEM_UNIT_PDF[it.type] ?? "", COL_UNIT, y, 9.5, font, GRAY);
@@ -365,7 +379,27 @@ export async function buildDocumentPdf({
       color: LIGHT_LINE,
     });
     y -= rowH;
-  });
+  };
+
+  let posNo = 0;
+  for (const g of groups) {
+    if (showHeadings) {
+      // Überschrift nicht am Seitenende verwaisen lassen
+      if (y < 200) {
+        page = pdf.addPage(A4);
+        y = 780;
+        drawTableHeader(y, page);
+        y -= 24;
+      }
+      y -= 2;
+      text(g.label.toUpperCase(), COL_POS + 4, y, 8, bold, GRAY);
+      y -= 15;
+    }
+    for (const it of g.rows) {
+      posNo += 1;
+      drawItemRow(it, posNo);
+    }
+  }
 
   if (items.length === 0) {
     text("Keine Positionen.", COL_DESC, y, 9.5, font, GRAY);
