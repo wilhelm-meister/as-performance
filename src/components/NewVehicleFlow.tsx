@@ -11,16 +11,12 @@ import { scanFahrzeugscheinAction } from "@/app/(app)/fahrzeuge/actions";
 // solange der Browser es zeichnen kann). Klappt das nicht, wird das Original genutzt.
 async function downscale(file: File): Promise<Blob> {
   try {
-    const url = URL.createObjectURL(file);
-    const img = document.createElement("img");
-    await new Promise<void>((res, rej) => {
-      img.onload = () => res();
-      img.onerror = () => rej(new Error("decode"));
-      img.src = url;
-    });
+    // createImageBitmap mit "from-image" dreht das Foto anhand der Kamera-Ausrichtung (EXIF)
+    // gerade — sonst landen Hochformat-Aufnahmen oft seitwärts auf dem Beleg.
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
     const max = 1600;
-    let w = img.naturalWidth;
-    let h = img.naturalHeight;
+    let w = bitmap.width;
+    let h = bitmap.height;
     if (Math.max(w, h) > max) {
       const s = max / Math.max(w, h);
       w = Math.round(w * s);
@@ -31,8 +27,8 @@ async function downscale(file: File): Promise<Blob> {
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("ctx");
-    ctx.drawImage(img, 0, 0, w, h);
-    URL.revokeObjectURL(url);
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
     const blob = await new Promise<Blob | null>((res) =>
       canvas.toBlob((b) => res(b), "image/jpeg", 0.85)
     );
@@ -187,7 +183,6 @@ export function NewVehicleFlow({
         >
           ← zurück
         </button>
-        <div className="text-[30px] leading-none mb-3">⌨️</div>
         <h2 className="text-[19px] font-bold tracking-[-0.2px]">Fahrgestellnummer eingeben</h2>
         <p className="text-[13.5px] text-[#6e6e73] mt-1.5 mb-5 leading-relaxed">
           Die FIN steht im Fahrzeugschein unter <strong>Feld E</strong> — genau 17 Zeichen.

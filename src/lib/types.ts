@@ -42,6 +42,7 @@ export type Vehicle = {
   tsn: string | null;
   first_registration: string | null;
   document_url: string | null;
+  document_rotation: number;
   created_at: string;
 };
 

@@ -104,6 +104,19 @@ export async function createCustomerFromHolderAction(holder: {
   return { id: data.id, name: data.name };
 }
 
+/** Merkt sich die Blickrichtung des Fahrzeugschein-Fotos (0/90/180/270°). */
+export async function setVehicleDocRotationAction(vehicleId: string, rotation: number) {
+  const rot = ((Math.round(rotation / 90) * 90) % 360 + 360) % 360;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("vehicles")
+    .update({ document_rotation: rot })
+    .eq("id", vehicleId);
+  if (error) return { error: "Drehung konnte nicht gespeichert werden." };
+  revalidatePath(`/fahrzeuge/${vehicleId}`);
+  return { ok: true };
+}
+
 export async function deleteVehicleAction(vehicleId: string) {
   const supabase = await createClient();
 

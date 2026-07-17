@@ -440,9 +440,6 @@ export async function buildDocumentPdf({
       `STORNIERT am ${datePdf(doc.cancelled_at?.slice(0, 10))} — dieser Beleg ist gegenstandslos.`
     );
   }
-  if (smallBusiness) {
-    notes.push("Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).");
-  }
   if (doc.type === "invoice") {
     if (doc.due_date) {
       notes.push(
@@ -460,6 +457,18 @@ export async function buildDocumentPdf({
   for (const n of notes) {
     text(n, M_LEFT, y, 9, font, GRAY);
     y -= 13;
+  }
+
+  // ---- Kleinunternehmer-Hinweis (§ 19 UStG) unten, direkt über der Fußzeile ----
+  if (smallBusiness) {
+    text(
+      "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).",
+      M_LEFT,
+      112,
+      9,
+      font,
+      GRAY
+    );
   }
 
   // ---- Fußzeile ----

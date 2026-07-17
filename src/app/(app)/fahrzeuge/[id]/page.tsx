@@ -7,6 +7,7 @@ import { OkBanner } from "@/components/OkBanner";
 import { PlateChip } from "@/components/PlateChip";
 import { DocRowList } from "@/components/DocTable";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { FahrzeugscheinViewer } from "@/components/FahrzeugscheinViewer";
 import { deleteVehicleAction } from "@/app/(app)/fahrzeuge/actions";
 
 const EMPTY = <span className="text-[#c7c7cc] font-normal">—</span>;
@@ -110,17 +111,11 @@ export default async function FahrzeugDetailPage({
                 Fahrzeugschein
               </div>
               {docUrl ? (
-                <div className="p-4">
-                  <a href={docUrl} target="_blank" rel="noopener noreferrer">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={docUrl}
-                      alt="Fahrzeugschein"
-                      className="rounded-lg border border-[#e5e5e7] w-full object-contain max-h-[320px] hover:opacity-90"
-                    />
-                  </a>
-                  <div className="text-[12px] text-[#86868b] mt-2">Tippen zum Vergrößern</div>
-                </div>
+                <FahrzeugscheinViewer
+                  url={docUrl}
+                  rotation={vehicle.document_rotation}
+                  vehicleId={id}
+                />
               ) : (
                 <div className="px-5 py-7 text-center text-[13px] text-[#86868b]">
                   Kein Fahrzeugschein-Foto hinterlegt.
