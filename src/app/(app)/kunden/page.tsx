@@ -32,10 +32,8 @@ export default async function KundenPage({
     }
   }
 
-  // Umsatzstärkste zuerst — bei Gleichstand bleibt die alphabetische Reihenfolge erhalten
-  const visible = filtered
-    .map((c) => ({ c, revenue: revenueByCustomer.get(c.id) ?? 0 }))
-    .sort((a, b) => b.revenue - a.revenue);
+  // Alphabetisch nach Name (kommt schon so aus der Datenbank), Umsatz nur als Info-Spalte
+  const visible = filtered.map((c) => ({ c, revenue: revenueByCustomer.get(c.id) ?? 0 }));
 
   return (
     <>
