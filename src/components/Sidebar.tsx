@@ -63,13 +63,11 @@ export function Sidebar({
   workshopName,
   ownerName,
   userEmail,
-  customerCount,
   overdueCount,
 }: {
   workshopName: string;
   ownerName: string;
   userEmail: string;
-  customerCount: number;
   overdueCount: number;
 }) {
   const path = usePathname();
@@ -112,11 +110,6 @@ export function Sidebar({
           href="/kunden"
           active={path.startsWith("/kunden")}
           label="Kunden"
-          badge={
-            <span className="bg-[#2c2c2e] text-[#a1a1a6] text-[11px] font-semibold px-[7px] py-px rounded-[10px]">
-              {customerCount}
-            </span>
-          }
           icon={
             <svg {...iconProps}>
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

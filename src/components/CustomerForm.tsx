@@ -74,7 +74,7 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
                 <Field label="Kennzeichen" name="plate" placeholder="VER-AS 123" mono defaultValue={v("plate")} />
               </div>
 
-              <details className="group border-t border-[#ececf0] pt-4">
+              <details className="group border-t border-[#ececf0] pt-4" open>
                 <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden inline-flex items-center gap-2 text-[13px] font-semibold text-[#6e6e73] select-none hover:text-[#1a1d23]">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-open:rotate-90">
                     <polyline points="9 18 15 12 9 6" />

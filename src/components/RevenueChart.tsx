@@ -14,7 +14,7 @@ export function RevenueChart({ invoices, year }: { invoices: DocWithRefs[]; year
 
   const curIdx = Number(todayISO().slice(5, 7)) - 1;
   const maxV = Math.max(...monthly.map((x) => x.v), 1);
-  const vbW = 720;
+  const vbW = 1100;
   const padX = 30;
   const yTop = 26;
   const yBot = 150;
@@ -51,14 +51,14 @@ export function RevenueChart({ invoices, year }: { invoices: DocWithRefs[]; year
           </div>
         )}
       </div>
-      <svg viewBox="0 0 720 190" className="w-full h-[200px] block overflow-visible">
+      <svg viewBox="0 0 1100 190" className="w-full h-[200px] block overflow-visible">
         <defs>
           <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0071e3" stopOpacity="0.16" />
             <stop offset="100%" stopColor="#0071e3" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <line x1="30" y1="150" x2="690" y2="150" stroke="#ececf0" strokeWidth="1" />
+        <line x1="30" y1="150" x2="1070" y2="150" stroke="#ececf0" strokeWidth="1" />
         <path d={area} fill="url(#revFill)" />
         <polyline
           points={line}

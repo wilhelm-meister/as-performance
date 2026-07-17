@@ -151,8 +151,8 @@ export async function buildDocumentPdf({
 
   // ---- Kopf: Logo bzw. Werkstattname links, Kontakt rechts ----
   if (logoImg) {
-    const maxW = 250;
-    const maxH = 80;
+    const maxW = 325;
+    const maxH = 104;
     const scale = Math.min(maxW / logoImg.width, maxH / logoImg.height, 1);
     page.drawImage(logoImg, {
       x: M_LEFT,
@@ -176,16 +176,16 @@ export async function buildDocumentPdf({
   const senderParts = [settings.name, settings.street, `${settings.zip} ${settings.city}`.trim()]
     .filter((p) => p && p.trim());
   if (senderParts.length > 1) {
-    text(senderParts.join(" · "), M_LEFT, 712, 7.5, font, GRAY);
+    text(senderParts.join(" · "), M_LEFT, 698, 7.5, font, GRAY);
     page.drawLine({
-      start: { x: M_LEFT, y: 708 },
-      end: { x: M_LEFT + 200, y: 708 },
+      start: { x: M_LEFT, y: 694 },
+      end: { x: M_LEFT + 200, y: 694 },
       thickness: 0.5,
       color: LIGHT_LINE,
     });
   }
 
-  let ry = 692;
+  let ry = 678;
   const recipient = [
     customer.company,
     customer.name,
@@ -214,7 +214,7 @@ export async function buildDocumentPdf({
   if (doc.km != null) {
     metaRows.push(["KM-Stand", doc.km.toLocaleString("de-DE").replace(/ /g, " ") + " km"]);
   }
-  let my = 692;
+  let my = 678;
   for (const [label, value] of metaRows) {
     text(label, 380, my, 9, font, GRAY);
     rightText(value, M_RIGHT, my, 9, bold);
@@ -485,7 +485,7 @@ export async function buildReminderPdf({
 
   // Kopf (wie Rechnung)
   if (logoImg) {
-    const scale = Math.min(250 / logoImg.width, 80 / logoImg.height, 1);
+    const scale = Math.min(325 / logoImg.width, 104 / logoImg.height, 1);
     page.drawImage(logoImg, {
       x: M_LEFT,
       y: 812 - logoImg.height * scale,
@@ -506,16 +506,16 @@ export async function buildReminderPdf({
   const senderParts = [settings.name, settings.street, `${settings.zip} ${settings.city}`.trim()]
     .filter((p) => p && p.trim());
   if (senderParts.length > 1) {
-    text(senderParts.join(" · "), M_LEFT, 712, 7.5, font, GRAY);
+    text(senderParts.join(" · "), M_LEFT, 698, 7.5, font, GRAY);
     page.drawLine({
-      start: { x: M_LEFT, y: 708 },
-      end: { x: M_LEFT + 200, y: 708 },
+      start: { x: M_LEFT, y: 694 },
+      end: { x: M_LEFT + 200, y: 694 },
       thickness: 0.5,
       color: LIGHT_LINE,
     });
   }
 
-  let ry = 692;
+  let ry = 678;
   const recipient = [
     customer.company,
     customer.name,
@@ -533,7 +533,7 @@ export async function buildReminderPdf({
     ["Rechnungs-Nr.", doc.number],
     ["Zahlbar bis", datePdf(deadline)],
   ];
-  let my = 692;
+  let my = 678;
   for (const [label, value] of metaRows) {
     text(label, 380, my, 9, font, GRAY);
     rightText(value, M_RIGHT, my, 9, bold);

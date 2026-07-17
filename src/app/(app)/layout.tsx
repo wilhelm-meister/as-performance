@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getSettings, isMember, listCustomers, listDocs } from "@/lib/data";
+import { getSettings, isMember, listDocs } from "@/lib/data";
 import { effectiveStatus } from "@/lib/format";
 import { Sidebar } from "@/components/Sidebar";
 import { NoAccess } from "@/components/NoAccess";
@@ -18,11 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     return <NoAccess email={user.email ?? ""} />;
   }
 
-  const [settings, customers, docs] = await Promise.all([
-    getSettings(),
-    listCustomers(),
-    listDocs(),
-  ]);
+  const [settings, docs] = await Promise.all([getSettings(), listDocs()]);
 
   const overdueCount = docs.filter((d) => effectiveStatus(d) === "overdue").length;
 
@@ -32,7 +28,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         workshopName={settings?.name || "AS Performance"}
         ownerName={settings?.owner_name || ""}
         userEmail={user.email ?? ""}
-        customerCount={customers.length}
         overdueCount={overdueCount}
       />
       <div className="flex-1 flex flex-col min-w-0">{children}</div>
