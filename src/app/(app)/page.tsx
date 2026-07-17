@@ -61,7 +61,10 @@ export default async function DashboardPage({
 
   return (
     <>
-      <Topbar title="Dashboard" />
+      <Topbar title="Dashboard">
+        {/* Hauptaktion übernimmt der große Hero-Knopf darunter */}
+        <div />
+      </Topbar>
       <main className="flex-1 overflow-y-auto p-4 md:p-7">
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <OkBanner message={ok} />
