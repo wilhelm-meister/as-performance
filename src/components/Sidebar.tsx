@@ -120,6 +120,19 @@ export function Sidebar({
           }
         />
         <NavButton
+          href="/fahrzeuge"
+          active={path.startsWith("/fahrzeuge")}
+          label="Fahrzeuge"
+          icon={
+            <svg {...iconProps}>
+              <path d="M5 17h14M6.5 17l-1.2-4.5A2 2 0 0 1 7.2 10h9.6a2 2 0 0 1 1.9 2.5L17.5 17" />
+              <path d="M5 11l1.2-3.6A2 2 0 0 1 8.1 6h7.8a2 2 0 0 1 1.9 1.4L19 11" />
+              <circle cx="7.5" cy="17.5" r="1.5" />
+              <circle cx="16.5" cy="17.5" r="1.5" />
+            </svg>
+          }
+        />
+        <NavButton
           href="/produkte"
           active={path.startsWith("/produkte")}
           label="Produkte"

@@ -29,7 +29,7 @@ export type Customer = {
 
 export type Vehicle = {
   id: string;
-  customer_id: string;
+  customer_id: string | null;
   plate: string;
   model: string;
   vin: string;
@@ -37,10 +37,19 @@ export type Vehicle = {
   year: number | null;
   fuel: string;
   engine: string;
+  hsn: string | null;
+  tsn: string | null;
+  first_registration: string | null;
+  document_url: string | null;
   created_at: string;
 };
 
 export type CustomerWithVehicles = Customer & { vehicles: Vehicle[] };
+
+/** Fahrzeug mit (optional zugeordnetem) Kunden — für die zentrale Fahrzeugliste. */
+export type VehicleWithCustomer = Vehicle & {
+  customer: Pick<Customer, "id" | "name" | "company"> | null;
+};
 
 export type Doc = {
   id: string;

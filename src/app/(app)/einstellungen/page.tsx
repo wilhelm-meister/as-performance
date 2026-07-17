@@ -1,5 +1,6 @@
 import { getSessionEmail, getSettings, listMembers } from "@/lib/data";
 import { mailConfigured, mailFrom } from "@/lib/mail";
+import { geminiConfigured } from "@/lib/gemini";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { SettingsForm } from "@/components/SettingsForm";
@@ -24,6 +25,7 @@ export default async function EinstellungenPage({
   const configured = mailConfigured();
   const from = mailFrom();
   const testMode = from.includes("onboarding@resend.dev");
+  const scanReady = geminiConfigured();
 
   return (
     <>
@@ -113,6 +115,25 @@ export default async function EinstellungenPage({
             ) : (
               <p className="text-[13px] text-[#1d8a4e] leading-relaxed">
                 ✓ Aktiv — Belege gehen als <strong>{from}</strong> raus.
+              </p>
+            )}
+          </div>
+
+          <div className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-5">
+            <div className="text-[16px] font-bold mb-1">Fahrzeugschein-Erkennung</div>
+            {scanReady ? (
+              <p className="text-[13px] text-[#1d8a4e] leading-relaxed">
+                ✓ Aktiv — ein Foto des Fahrzeugscheins füllt beim Anlegen die Fahrzeugdaten
+                automatisch aus.
+              </p>
+            ) : (
+              <p className="text-[13px] text-[#6e6e73] leading-relaxed">
+                Noch nicht eingerichtet. Sobald in Vercel die Umgebungsvariable{" "}
+                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">
+                  GEMINI_API_KEY
+                </code>{" "}
+                hinterlegt ist, liest die KI den Fahrzeugschein vom Foto. Bis dahin: FIN-Abfrage
+                oder von Hand.
               </p>
             )}
           </div>

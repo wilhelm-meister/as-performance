@@ -8,6 +8,7 @@ import type {
   Member,
   Product,
   Settings,
+  VehicleWithCustomer,
 } from "./types";
 
 export const getSettings = cache(async (): Promise<Settings | null> => {
@@ -43,6 +44,35 @@ export async function getCustomer(id: string): Promise<CustomerWithVehicles | nu
     .eq("id", id)
     .maybeSingle();
   return (data as CustomerWithVehicles) ?? null;
+}
+
+const VEHICLE_SELECT = "*, customer:customers(id, name, company)";
+
+export const listVehicles = cache(async (): Promise<VehicleWithCustomer[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("vehicles")
+    .select(VEHICLE_SELECT)
+    .order("plate");
+  return (data as unknown as VehicleWithCustomer[]) ?? [];
+});
+
+export async function getVehicle(id: string): Promise<VehicleWithCustomer | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("vehicles")
+    .select(VEHICLE_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+  return (data as unknown as VehicleWithCustomer) ?? null;
+}
+
+/** Kurzlebige signierte URL für das (private) Fahrzeugschein-Foto. */
+export async function vehicleDocSignedUrl(path: string | null): Promise<string | null> {
+  if (!path) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.storage.from("vehicle-docs").createSignedUrl(path, 3600);
+  return data?.signedUrl ?? null;
 }
 
 const DOC_SELECT =

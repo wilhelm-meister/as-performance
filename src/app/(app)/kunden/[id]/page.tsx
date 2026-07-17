@@ -119,7 +119,7 @@ export default async function KundenDetailPage({
               <div className="px-5 py-[15px] border-b border-[#ececf0] flex items-center justify-between">
                 <span className="font-semibold text-[14px]">Fahrzeuge</span>
                 <Link
-                  href={`/kunden/${id}/fahrzeuge/neu`}
+                  href={`/fahrzeuge/neu?customer=${id}`}
                   className="text-[12.5px] font-semibold text-[#0071e3] hover:text-[#0060c9]"
                 >
                   + Fahrzeug
@@ -128,7 +128,7 @@ export default async function KundenDetailPage({
               {customer.vehicles.map((v) => (
                 <Link
                   key={v.id}
-                  href={`/kunden/${id}/fahrzeuge/${v.id}`}
+                  href={`/fahrzeuge/${v.id}`}
                   className="block px-5 py-3.5 border-b border-[#f0f0f3] hover:bg-[#f5f5f7]"
                 >
                   <div className="flex items-center gap-2.5 mb-1.5">
