@@ -304,3 +304,82 @@ export async function extractVehicleFromImage(
     return { error: "Der Fahrzeugschein konnte nicht gelesen werden — bitte schärferes Foto." };
   }
 }
+
+// ---------------------------------------------------------------------------
+// FIN-Struktur-Dekodierung als Lückenfüller: Die NHTSA (US-Behörde) kennt
+// EU-Fahrzeuge nicht vollständig — Marke/Baureihe/Modelljahr stecken aber in
+// der FIN-Struktur selbst (WMI, Baureihen-Code, Jahres-Code). Nur sichere
+// Ableitungen, alles bleibt im Formular prüfbar. Fehler → null (kein Blocker).
+// ---------------------------------------------------------------------------
+
+export type VinGuess = { marke?: string; modell?: string; baujahr?: string; kraftstoff?: string };
+
+const VIN_PROMPT = `Du dekodierst eine europäische Fahrzeug-Identifizierungsnummer (FIN, ISO 3779) REIN STRUKTURELL — ohne Fahrzeugdatenbank, nur aus dem Aufbau der Nummer:
+- Zeichen 1–3 (WMI) nennen den Hersteller (z.B. WAU/TRU = Audi, WVW = Volkswagen, WBA/WBS = BMW, WDB/WDD/W1K = Mercedes-Benz, WP0/WP1 = Porsche, W0L/W0V = Opel, TMB = Skoda, VSS = Seat, VF1 = Renault, VF3 = Peugeot, VF7 = Citroen, ZFA = Fiat).
+- Bei VW-Konzern-FINs steht an Zeichen 7–8 der Baureihen-Code (z.B. 4G = Audi A6 C7, 4K = Audi A6 C8, 8V = Audi A3, F5 = Audi A5, 3G = VW Passat B8, AU = VW Golf VII, CD = VW Golf VIII, 5N = VW Tiguan).
+- Zeichen 10 ist der Modelljahr-Code; er wiederholt sich alle 30 Jahre (z.B. D = 1983 oder 2013). Wähle IMMER das moderne, plausible Jahr zwischen 1996 und heute.
+Regeln: Gib NUR an, was du aus der Struktur sicher ableiten kannst — im Zweifel leerer String "". Rate niemals Motor oder Ausstattung.
+- marke: Herstellername (z.B. "Audi"), sonst ""
+- modell: Baureihe OHNE Markenname (z.B. "A6"), sonst ""
+- baujahr: vierstelliges Modelljahr (z.B. "2013"), sonst ""
+- kraftstoff: nur wenn aus der Baureihe zwingend ableitbar (praktisch nie) — sonst ""
+FIN: `;
+
+const VIN_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    marke: { type: "STRING" },
+    modell: { type: "STRING" },
+    baujahr: { type: "STRING" },
+    kraftstoff: { type: "STRING" },
+  },
+} as const;
+
+export async function decodeVinStructurally(vin: string): Promise<VinGuess | null> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
+
+  if (!modelCandidates) {
+    const r = await listCandidates(key);
+    if (r.error || !r.models) return null;
+    modelCandidates = r.models;
+  }
+
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: VIN_PROMPT + vin }] }],
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: "application/json",
+      responseSchema: VIN_SCHEMA,
+    },
+  });
+
+  for (const model of modelCandidates) {
+    let res: Response;
+    try {
+      res = await fetch(`${API}/models/${model}:generateContent?key=${key}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(15000),
+        body,
+      });
+    } catch {
+      return null;
+    }
+    if (res.ok) {
+      modelCandidates = [model, ...modelCandidates.filter((m) => m !== model)];
+      try {
+        const json = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+        return text ? (JSON.parse(text) as VinGuess) : null;
+      } catch {
+        return null;
+      }
+    }
+    if (res.status === 404) continue; // nächstes Modell probieren
+    return null; // 400/403/5xx → kein Lückenfüller, US-Daten reichen dann
+  }
+  return null;
+}

@@ -56,6 +56,19 @@ function val(x: unknown): string {
   return s && s.toLowerCase() !== "not applicable" ? s : "";
 }
 
+/**
+ * FALLE: Der Modelljahr-Code (FIN-Position 10) wiederholt sich alle 30 Jahre
+ * („D" = 1983 ODER 2013). Die NHTSA nutzt zur Unterscheidung eine US-Regel,
+ * die für EU-Fahrzeuge nicht gilt — und rät dort oft die alte Runde.
+ * Absurd alte Jahre (über 30 Jahre zurück) heben wir deshalb auf die moderne an.
+ */
+function plausibleYear(year: number): number {
+  const now = new Date().getFullYear();
+  let y = year;
+  while (y < now - 30 && y + 30 <= now + 1) y += 30;
+  return y;
+}
+
 export async function decodeVin(vin: string): Promise<VinData | null> {
   const res = await fetch(
     `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
@@ -72,7 +85,7 @@ export async function decodeVin(vin: string): Promise<VinData | null> {
   const model = modelParts.filter((p, i) => modelParts.indexOf(p) === i).join(" ");
 
   const yearNum = parseInt(val(r.ModelYear), 10);
-  const year = Number.isFinite(yearNum) && yearNum > 1950 ? yearNum : null;
+  const year = Number.isFinite(yearNum) && yearNum > 1950 ? plausibleYear(yearNum) : null;
 
   const engineParts: string[] = [];
   const displacement = parseFloat(val(r.DisplacementL));
