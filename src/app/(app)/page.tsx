@@ -82,27 +82,35 @@ export default async function DashboardPage({
               <div className="text-[14px] text-[#6e6e73] mt-3">{satz}</div>
             </Link>
 
-            <Link
-              href="/belege/neu?type=quote"
-              className="bg-[#0071e3] text-white rounded-xl px-6 py-6 flex flex-col justify-center hover:bg-[#0060c9]"
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="mb-2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <div className="text-[19px] font-bold">Neues Angebot</div>
-              <div className="text-[12.5px] opacity-85 mt-1">
-                Kunde wählen, Positionen aus dem Katalog — fertig.
-              </div>
-            </Link>
+            <div className="flex flex-col gap-3">
+              <Link
+                href="/belege/neu?type=quote"
+                className="flex-1 bg-[#0071e3] text-white rounded-xl px-6 py-5 flex flex-col justify-center hover:bg-[#0060c9]"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="mb-2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <div className="text-[18px] font-bold">Neues Angebot</div>
+                <div className="text-[12.5px] opacity-85 mt-0.5">
+                  Kunde wählen, Positionen aus dem Katalog — fertig.
+                </div>
+              </Link>
+              <Link
+                href="/belege/neu?type=invoice"
+                className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-3.5 flex items-center gap-2.5 font-bold text-[15px] hover:border-[#0071e3] hover:text-[#0071e3]"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Neue Rechnung
+              </Link>
+            </div>
           </div>
 
           <div className="text-[13px] text-[#6e6e73] mb-5">
             Oder:{" "}
-            <Link href="/belege/neu?type=invoice" className="text-[#0071e3] font-medium hover:text-[#0060c9]">
-              Rechnung direkt erstellen
-            </Link>
-            {" · "}
             <Link href="/kunden/neu" className="text-[#0071e3] font-medium hover:text-[#0060c9]">
               Kunde anlegen
             </Link>
