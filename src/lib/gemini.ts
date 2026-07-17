@@ -43,6 +43,8 @@ async function resolveModel(key: string): Promise<{ model?: string; error?: stri
     pick(/2\.5-flash(?!-lite)/) ||
     pick(/flash/) ||
     usable[0];
+  console.error(`[gemini] verfügbare Modelle (${usable.length}): ${usable.slice(0, 30).join(" | ")}`);
+  console.error(`[gemini] gewählt: ${model ?? "(keins)"}`);
   if (!model) {
     return { error: "Für diesen Gemini-Schlüssel ist kein passendes Modell verfügbar." };
   }
@@ -211,6 +213,8 @@ export async function extractVehicleFromImage(
   }
 
   if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[gemini] generateContent ${res.status} · Modell ${resolved.model} · ${body.slice(0, 500)}`);
     // Gemerktes Modell wird doch abgelehnt → Cache leeren, damit der nächste Versuch neu wählt
     if (res.status === 404) cachedModel = null;
     if (res.status === 400 || res.status === 403) {
