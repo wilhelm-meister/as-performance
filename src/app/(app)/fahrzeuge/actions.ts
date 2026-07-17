@@ -42,6 +42,7 @@ export async function saveVehicleAction(
     year: intOrNull(str(fd, "year")),
     fuel: str(fd, "fuel"),
     engine: str(fd, "engine"),
+    motor_code: str(fd, "motor_code"),
     hsn: str(fd, "hsn") || null,
     tsn: str(fd, "tsn") || null,
     first_registration: str(fd, "first_registration") || null,

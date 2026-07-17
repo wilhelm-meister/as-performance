@@ -15,6 +15,7 @@ export type VehiclePrefill = {
   first_registration?: string;
   fuel?: string;
   engine?: string;
+  motor_code?: string;
   hsn?: string;
   tsn?: string;
   km?: string;
@@ -90,6 +91,7 @@ export function VehicleEditor({
   );
   const [fuel, setFuel] = useState(vehicle?.fuel ?? init.fuel ?? "");
   const [engine, setEngine] = useState(vehicle?.engine ?? init.engine ?? "");
+  const [motorCode, setMotorCode] = useState(vehicle?.motor_code ?? init.motor_code ?? "");
   const [hsn, setHsn] = useState(vehicle?.hsn ?? init.hsn ?? "");
   const [tsn, setTsn] = useState(vehicle?.tsn ?? init.tsn ?? "");
   const [km, setKm] = useState(
@@ -181,6 +183,7 @@ export function VehicleEditor({
     fd.set("year", year);
     fd.set("fuel", fuel);
     fd.set("engine", engine);
+    fd.set("motor_code", motorCode);
     fd.set("hsn", hsn);
     fd.set("tsn", tsn);
     fd.set("km", km);
@@ -369,6 +372,17 @@ export function VehicleEditor({
               placeholder="2,0 l · 110 kW (150 PS)"
               className={field}
             />
+          </Labeled>
+          <Labeled label="Motorcode / Kennbuchstabe">
+            <input
+              value={motorCode}
+              onChange={(e) => setMotorCode(e.target.value.toUpperCase())}
+              placeholder="z.B. CBAB"
+              className={`${field} font-mono`}
+            />
+            <div className="text-[11px] text-[#86868b] mt-1">
+              Steht selten im Schein (Feld P.5) — sonst vom Motor ablesen und hier eintragen.
+            </div>
           </Labeled>
 
           <Labeled label="Schlüsselnummer HSN (2.1)">

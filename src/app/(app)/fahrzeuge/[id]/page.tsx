@@ -94,6 +94,9 @@ export default async function FahrzeugDetailPage({
               <Fact label="KM-Stand">{vehicle.km != null ? formatKm(vehicle.km) : EMPTY}</Fact>
               <Fact label="Kraftstoff">{vehicle.fuel || EMPTY}</Fact>
               <Fact label="Motor">{vehicle.engine || EMPTY}</Fact>
+              <Fact label="Motorcode / Kennbuchstabe">
+                <span className="font-mono text-[13px]">{vehicle.motor_code || EMPTY}</span>
+              </Fact>
               <Fact label="Schlüsselnummer (HSN/TSN)">
                 <span className="font-mono text-[13px]">{schluessel || EMPTY}</span>
               </Fact>

@@ -75,6 +75,7 @@ export type VehicleExtract = {
   first_registration: string; // YYYY-MM-DD oder ""
   fuel: string;
   engine: string;
+  motor_code: string;
   hsn: string;
   tsn: string;
   holder: HolderExtract | null;
@@ -89,6 +90,7 @@ type Raw = {
   kraftstoff?: string;
   hubraum_ccm?: string;
   leistung_kw?: string;
+  motorcode?: string;
   hsn?: string;
   tsn?: string;
   halter_name?: string;
@@ -165,6 +167,7 @@ function mapRaw(raw: Raw): VehicleExtract {
     first_registration: date.iso,
     fuel: tidyFuel(raw.kraftstoff ?? ""),
     engine: buildEngine(raw.hubraum_ccm ?? "", raw.leistung_kw ?? ""),
+    motor_code: (raw.motorcode ?? "").toUpperCase().replace(/\s+/g, "").trim(),
     hsn: (raw.hsn ?? "").trim(),
     tsn: (raw.tsn ?? "").trim(),
     holder: mapHolder(raw),
@@ -183,6 +186,7 @@ Wenn ein Feld nicht sicher lesbar oder nicht vorhanden ist, gib einen leeren Str
 - kraftstoff: Kraftstoff/Energiequelle (Feld P.3, z.B. DIESEL)
 - hubraum_ccm: Hubraum in cm³ (Feld P.1, nur Zahl)
 - leistung_kw: Nennleistung in kW (Feld P.2, nur Zahl)
+- motorcode: Motorkennbuchstabe(n) / Motorcode, meist in Feld P.5 (Motorkennnummer) oder in Feld 22 (Bemerkungen). Häufig NICHT vorhanden — dann "". Nur den Buchstaben-/Zahlencode, keine ganze Motornummer.
 - hsn: Herstellerschlüsselnummer (Feld 2.1, 4 Ziffern)
 - tsn: Typschlüsselnummer (Feld 2.2)
 - halter_name: Name oder Firmenname des Halters (Feld C.1.1)
@@ -202,6 +206,7 @@ const SCHEMA = {
     kraftstoff: { type: "STRING" },
     hubraum_ccm: { type: "STRING" },
     leistung_kw: { type: "STRING" },
+    motorcode: { type: "STRING" },
     hsn: { type: "STRING" },
     tsn: { type: "STRING" },
     halter_name: { type: "STRING" },

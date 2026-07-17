@@ -37,6 +37,7 @@ export type Vehicle = {
   year: number | null;
   fuel: string;
   engine: string;
+  motor_code: string;
   hsn: string | null;
   tsn: string | null;
   first_registration: string | null;
