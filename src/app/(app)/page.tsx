@@ -105,26 +105,7 @@ export default async function DashboardPage({
             </Link>
           </div>
 
-          {/* Alles Weitere eingeklappt */}
-          <details className="group">
-            <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#6e6e73] py-2 select-none hover:text-[#1a1d23]">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="transition-transform group-open:rotate-90"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-              Mehr anzeigen — Umsatz, Kennzahlen, letzte Vorgänge
-            </summary>
-
-            <div className="pt-4 flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 <MiniKpi label="Umsatz (Monat)" value={euro(monthRevenue)} sub="bezahlte Rechnungen" />
                 <MiniKpi label="Offene Angebote" value={String(openQuotes)} sub="warten auf Antwort" />
@@ -149,7 +130,7 @@ export default async function DashboardPage({
                 )}
               </div>
             </div>
-          </details>
+          </div>
 
           {!settings?.tax_number && (
             <div className="mt-4 rounded-xl border border-[#f0e2c0] bg-[#fdf8ec] px-5 py-4 text-[13px] text-[#9a6a00]">
