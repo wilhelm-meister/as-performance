@@ -149,6 +149,31 @@ export async function buildDocumentPdf({
     return s + "…";
   };
 
+  // Bricht Text wortweise auf mehrere Zeilen um (überlange Wörter werden hart getrennt)
+  const wrapText = (t: string, maxWidth: number, size: number, f: PDFFont = font): string[] => {
+    const words = safe(t).split(/\s+/).filter(Boolean);
+    const lines: string[] = [];
+    let line = "";
+    for (const w of words) {
+      const probe = line ? `${line} ${w}` : w;
+      if (f.widthOfTextAtSize(probe, size) <= maxWidth) {
+        line = probe;
+        continue;
+      }
+      if (line) lines.push(line);
+      let rest = w;
+      while (f.widthOfTextAtSize(rest, size) > maxWidth && rest.length > 1) {
+        let cut = rest.length - 1;
+        while (cut > 1 && f.widthOfTextAtSize(rest.slice(0, cut), size) > maxWidth) cut--;
+        lines.push(rest.slice(0, cut));
+        rest = rest.slice(cut);
+      }
+      line = rest;
+    }
+    if (line) lines.push(line);
+    return lines.length ? lines : ["—"];
+  };
+
   // ---- Kopf: Logo bzw. Werkstattname links, Kontakt rechts ----
   if (logoImg) {
     const maxW = 325;
@@ -311,26 +336,35 @@ export async function buildDocumentPdf({
   y -= 24;
 
   const items = doc.items ?? [];
+  const DESC_W = COL_QTY_R - COL_DESC - 40;
+  const DESC_LINE_H = 12;
   items.forEach((it, i) => {
-    if (y < 170) {
+    const allLines = wrapText(it.desc || "—", DESC_W, 9.5);
+    const lines = allLines.slice(0, 10);
+    if (allLines.length > 10) {
+      lines[9] = truncate(lines[9] + " …", DESC_W, 9.5);
+    }
+    const rowH = 20 + (lines.length - 1) * DESC_LINE_H;
+    if (y - (rowH - 20) < 170) {
       page = pdf.addPage(A4);
       y = 780;
       drawTableHeader(y, page);
       y -= 24;
     }
     text(String(i + 1), COL_POS + 4, y, 9.5);
-    text(truncate(it.desc || "—", COL_QTY_R - COL_DESC - 40, 9.5), COL_DESC, y, 9.5);
+    lines.forEach((ln, j) => text(ln, COL_DESC, y - j * DESC_LINE_H, 9.5));
     rightText(qtyPdf(it.qty), COL_QTY_R, y, 9.5);
     text(ITEM_UNIT_PDF[it.type] ?? "", COL_UNIT, y, 9.5, font, GRAY);
     rightText(euroPdf(it.price), COL_PRICE_R, y, 9.5);
     rightText(euroPdf(lineTotal(it)), COL_TOTAL_R, y, 9.5, bold);
+    const sepY = y - (rowH - 20) - 6;
     page.drawLine({
-      start: { x: M_LEFT, y: y - 6 },
-      end: { x: M_RIGHT, y: y - 6 },
+      start: { x: M_LEFT, y: sepY },
+      end: { x: M_RIGHT, y: sepY },
       thickness: 0.5,
       color: LIGHT_LINE,
     });
-    y -= 20;
+    y -= rowH;
   });
 
   if (items.length === 0) {
