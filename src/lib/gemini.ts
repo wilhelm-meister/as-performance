@@ -8,13 +8,28 @@ export function geminiConfigured(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-// Die exakte Modell-ID variiert je nach Schlüssel/Zeitpunkt (sonst 404). Wir fragen
-// daher einmal die verfügbaren Modelle ab und wählen das beste „flash-lite" (Fallback:
-// flash), das generateContent kann — pro Serverless-Instanz gecacht.
-let cachedModel: string | null = null;
+// Modell-IDs verschieben sich (Google schaltet alte für neue Schlüssel ab → 404, wird
+// aber trotzdem noch gelistet). Wir holen daher die für DIESEN Schlüssel verfügbaren
+// Modelle, sortieren sie (günstiges flash-lite zuerst, gepflegte „…-latest"-Aliase
+// bevorzugt) und probieren beim Aufruf der Reihe nach durch, bis eins funktioniert.
+// Das erste funktionierende Modell wandert nach vorn (pro Instanz gecacht).
+let modelCandidates: string[] | null = null;
 
-async function resolveModel(key: string): Promise<{ model?: string; error?: string }> {
-  if (cachedModel) return { model: cachedModel };
+// Für Text-Erkennung ungeeignete Modelle (Bild/Ton/Musik/Embedding) + das für neue
+// Schlüssel gesperrte gemini-2.5-flash-lite aussortieren.
+const UNSUITABLE = /tts|image|audio|speech|lyria|banana|embedding|omni|gemma|2\.5-flash-lite$/;
+
+function scoreModel(m: string): number {
+  let s = 0;
+  if (/flash-lite/.test(m)) s += 100; // günstigste Klasse zuerst
+  else if (/flash/.test(m)) s += 50;
+  if (/latest/.test(m)) s += 20; // gepflegte Aliase bevorzugen
+  const v = m.match(/gemini-(\d+(?:\.\d+)?)/);
+  if (v) s += parseFloat(v[1]); // neuere Version leicht bevorzugen
+  return s;
+}
+
+async function listCandidates(key: string): Promise<{ models?: string[]; error?: string }> {
   let res: Response;
   try {
     res = await fetch(`${API}/models?key=${key}&pageSize=1000`, {
@@ -32,24 +47,15 @@ async function resolveModel(key: string): Promise<{ model?: string; error?: stri
   const json = (await res.json()) as {
     models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
   };
-  const usable = (json.models ?? [])
+  const models = (json.models ?? [])
     .filter((m) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
     .map((m) => (m.name ?? "").replace(/^models\//, ""))
-    .filter(Boolean);
-  const pick = (re: RegExp) => usable.find((m) => re.test(m));
-  const model =
-    pick(/2\.5-flash-lite/) ||
-    pick(/flash-lite/) ||
-    pick(/2\.5-flash(?!-lite)/) ||
-    pick(/flash/) ||
-    usable[0];
-  console.error(`[gemini] verfügbare Modelle (${usable.length}): ${usable.slice(0, 30).join(" | ")}`);
-  console.error(`[gemini] gewählt: ${model ?? "(keins)"}`);
-  if (!model) {
+    .filter((m) => m && !UNSUITABLE.test(m))
+    .sort((a, b) => scoreModel(b) - scoreModel(a));
+  if (!models.length) {
     return { error: "Für diesen Gemini-Schlüssel ist kein passendes Modell verfügbar." };
   }
-  cachedModel = model;
-  return { model };
+  return { models };
 }
 
 /** Fertige, ins Fahrzeug übernehmbare Felder — alles editierbar, nichts blind vertrauen. */
@@ -181,59 +187,72 @@ export async function extractVehicleFromImage(
     };
   }
 
-  const resolved = await resolveModel(key);
-  if (resolved.error || !resolved.model) {
-    return { error: resolved.error ?? "Für diesen Gemini-Schlüssel ist kein Modell verfügbar." };
+  if (!modelCandidates) {
+    const r = await listCandidates(key);
+    if (r.error || !r.models) {
+      return { error: r.error ?? "Für diesen Gemini-Schlüssel ist kein Modell verfügbar." };
+    }
+    modelCandidates = r.models;
+    console.error(`[gemini] Kandidaten: ${modelCandidates.join(" | ")}`);
   }
 
-  let res: Response;
-  try {
-    res = await fetch(`${API}/models/${resolved.model}:generateContent?key=${key}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(30000),
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: PROMPT },
-              { inline_data: { mime_type: mimeType, data: base64 } },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0,
-          responseMimeType: "application/json",
-          responseSchema: SCHEMA,
-        },
-      }),
-    });
-  } catch {
-    return { error: "Keine Verbindung zur Foto-Erkennung — bitte erneut versuchen." };
-  }
+  const requestBody = JSON.stringify({
+    contents: [
+      { parts: [{ text: PROMPT }, { inline_data: { mime_type: mimeType, data: base64 } }] },
+    ],
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: "application/json",
+      responseSchema: SCHEMA,
+    },
+  });
 
-  if (!res.ok) {
+  // Kandidaten der Reihe nach probieren: 404 = Modell (doch) nicht verfügbar → nächstes.
+  let text: string | undefined;
+  let lastStatus = 0;
+  for (const model of modelCandidates) {
+    let res: Response;
+    try {
+      res = await fetch(`${API}/models/${model}:generateContent?key=${key}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(30000),
+        body: requestBody,
+      });
+    } catch {
+      return { error: "Keine Verbindung zur Foto-Erkennung — bitte erneut versuchen." };
+    }
+
+    if (res.ok) {
+      modelCandidates = [model, ...modelCandidates.filter((m) => m !== model)];
+      try {
+        const json = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      } catch {
+        return { error: "Antwort der Foto-Erkennung konnte nicht gelesen werden." };
+      }
+      break;
+    }
+
     const body = await res.text().catch(() => "");
-    console.error(`[gemini] generateContent ${res.status} · Modell ${resolved.model} · ${body.slice(0, 500)}`);
-    // Gemerktes Modell wird doch abgelehnt → Cache leeren, damit der nächste Versuch neu wählt
-    if (res.status === 404) cachedModel = null;
+    console.error(`[gemini] ${model} → ${res.status} · ${body.slice(0, 200)}`);
+    lastStatus = res.status;
     if (res.status === 400 || res.status === 403) {
       return { error: "Der Gemini-Schlüssel wird nicht akzeptiert — bitte in Vercel prüfen." };
     }
+    if (res.status === 404) continue; // nächstes Modell probieren
     return { error: `Foto-Erkennung fehlgeschlagen (Fehler ${res.status}).` };
   }
 
-  let text: string | undefined;
-  try {
-    const json = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  } catch {
-    return { error: "Antwort der Foto-Erkennung konnte nicht gelesen werden." };
-  }
   if (!text) {
-    return { error: "Der Fahrzeugschein konnte nicht gelesen werden — bitte schärferes Foto." };
+    return {
+      error:
+        lastStatus === 404
+          ? "Kein passendes Gemini-Modell verfügbar — bitte kurz melden."
+          : "Der Fahrzeugschein konnte nicht gelesen werden — bitte schärferes Foto.",
+    };
   }
 
   try {
