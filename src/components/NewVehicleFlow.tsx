@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import type { Customer } from "@/lib/types";
 import type { HolderExtract } from "@/lib/gemini";
 import { VehicleEditor, type VehiclePrefill } from "./VehicleEditor";
+import { cleanVin, isValidVin } from "@/lib/vin";
 import { scanFahrzeugscheinAction } from "@/app/(app)/fahrzeuge/actions";
 
 // Foto vor dem Hochladen verkleinern (spart Zeit/Datenvolumen, wandelt auch HEIC → JPG,
@@ -42,7 +43,7 @@ async function downscale(file: File): Promise<Blob> {
   }
 }
 
-type Mode = "choose" | "scanning" | "form" | "fin";
+type Mode = "choose" | "scanning" | "form" | "fin" | "fin-input" | "fin-loading";
 
 function ChoiceCard({
   icon,
@@ -81,6 +82,8 @@ export function NewVehicleFlow({
   const [documentPath, setDocumentPath] = useState<string | undefined>();
   const [preview, setPreview] = useState<string | undefined>();
   const [scanError, setScanError] = useState<string | null>(null);
+  const [finInput, setFinInput] = useState("");
+  const [finError, setFinError] = useState<string | null>(null);
   const [, start] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +114,39 @@ export function NewVehicleFlow({
     });
   };
 
+  // FIN-Route: erst nur die FIN, dekodieren, dann volles Formular öffnen (vorausgefüllt)
+  const onFinSubmit = () => {
+    const v = cleanVin(finInput);
+    if (!isValidVin(v)) {
+      setFinError("Eine FIN hat genau 17 Zeichen (ohne die Buchstaben I, O, Q).");
+      return;
+    }
+    setFinError(null);
+    setMode("fin-loading");
+    start(async () => {
+      let pf: VehiclePrefill = { vin: v };
+      try {
+        const res = await fetch(`/api/vin/${v}`);
+        const data = await res.json();
+        if (res.ok) {
+          const modelText = [data.make, data.model].filter(Boolean).join(" ").trim();
+          pf = {
+            vin: v,
+            model: modelText || undefined,
+            year: data.year ? String(data.year) : undefined,
+            fuel: data.fuel || undefined,
+            engine: data.engine || undefined,
+          };
+        }
+      } catch {
+        // Keine Verbindung zur Fahrzeugdatenbank — Formular trotzdem mit der FIN öffnen
+      }
+      setPrefill(pf);
+      setHolder(null);
+      setMode("form");
+    });
+  };
+
   if (mode === "form" || mode === "fin") {
     return (
       <VehicleEditor
@@ -125,14 +161,75 @@ export function NewVehicleFlow({
     );
   }
 
-  if (mode === "scanning") {
+  if (mode === "scanning" || mode === "fin-loading") {
     return (
       <div className="bg-white border border-[#e5e5e7] rounded-2xl px-6 py-14 flex flex-col items-center text-center">
         <div className="w-9 h-9 border-[3px] border-[#e5e5e7] border-t-[#0071e3] rounded-full animate-spin mb-4" />
-        <div className="text-[15px] font-semibold">Der Fahrzeugschein wird gelesen…</div>
-        <div className="text-[13px] text-[#86868b] mt-1">
-          Die KI erkennt Kennzeichen, Marke, FIN und mehr. Einen Moment.
+        <div className="text-[15px] font-semibold">
+          {mode === "scanning" ? "Der Fahrzeugschein wird gelesen…" : "Die FIN wird abgefragt…"}
         </div>
+        <div className="text-[13px] text-[#86868b] mt-1">
+          {mode === "scanning"
+            ? "Die KI erkennt Kennzeichen, Marke, FIN und mehr. Einen Moment."
+            : "Modell, Baujahr, Kraftstoff und Motor werden geladen. Einen Moment."}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "fin-input") {
+    return (
+      <div className="bg-white border border-[#e5e5e7] rounded-2xl px-5 md:px-8 py-8 md:py-10 max-w-[560px] mx-auto anim-popin">
+        <button
+          type="button"
+          onClick={() => setMode("choose")}
+          className="text-[13px] text-[#0071e3] hover:text-[#0060c9] mb-5"
+        >
+          ← zurück
+        </button>
+        <div className="text-[30px] leading-none mb-3">⌨️</div>
+        <h2 className="text-[19px] font-bold tracking-[-0.2px]">Fahrgestellnummer eingeben</h2>
+        <p className="text-[13.5px] text-[#6e6e73] mt-1.5 mb-5 leading-relaxed">
+          Die FIN steht im Fahrzeugschein unter <strong>Feld E</strong> — genau 17 Zeichen.
+          Danach werden Modell, Baujahr, Kraftstoff und Motor automatisch geladen.
+        </p>
+        <input
+          value={finInput}
+          onChange={(e) => {
+            setFinInput(e.target.value.toUpperCase());
+            if (finError) setFinError(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onFinSubmit();
+            }
+          }}
+          placeholder="z.B. WVWZZZ1KZAW123456"
+          autoFocus
+          spellCheck={false}
+          autoComplete="off"
+          className="w-full h-12 border border-[#e5e5e7] rounded-lg px-3.5 text-[16px] font-mono tracking-[0.5px] outline-none focus:border-[#0071e3] bg-white"
+        />
+        {finError && (
+          <div className="mt-2.5 rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-3.5 py-2.5 text-[13px] text-[#c9362b]">
+            {finError}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onFinSubmit}
+          className="mt-4 w-full h-11 rounded-lg bg-[#0071e3] text-white font-semibold text-[14px] cursor-pointer hover:bg-[#0060c9]"
+        >
+          Weiter →
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("fin")}
+          className="mt-3 w-full text-[13px] text-[#6e6e73] hover:text-[#0071e3]"
+        >
+          FIN unbekannt? Alles von Hand eingeben
+        </button>
       </div>
     );
   }
@@ -169,7 +266,11 @@ export function NewVehicleFlow({
           icon="⌨️"
           title="Fahrgestellnummer (FIN)"
           desc="FIN eintippen — Modell, Baujahr, Kraftstoff und Motor werden über die Fahrzeugdatenbank geladen."
-          onClick={() => setMode("fin")}
+          onClick={() => {
+            setFinInput("");
+            setFinError(null);
+            setMode("fin-input");
+          }}
         />
       </div>
 
