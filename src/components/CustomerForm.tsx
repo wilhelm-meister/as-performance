@@ -65,46 +65,72 @@ export function CustomerForm({ customer }: { customer?: Customer }) {
         </div>
 
         <div className="px-6 py-[22px] flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <Field label="Name *" name="name" placeholder="Vor- und Nachname" required defaultValue={v("name", customer?.name)} />
-            <Field label="Firma" name="company" placeholder="optional" defaultValue={v("company", customer?.company)} />
-            <Field label="Telefon" name="phone" placeholder="0170 …" defaultValue={v("phone", customer?.phone)} />
-            <Field label="E-Mail" name="email" placeholder="name@mail.de" defaultValue={v("email", customer?.email)} />
-          </div>
-
-          <div className="border-t border-[#ececf0] pt-4">
-            <div className="text-[13px] font-semibold mb-3">
-              Anschrift{" "}
-              <span className="text-[#86868b] font-normal">(erscheint auf Rechnungen)</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <Field label="Straße und Hausnummer" name="street" placeholder="Musterstraße 12" defaultValue={v("street", customer?.street)} />
-              <div className="grid grid-cols-[110px_1fr] gap-3.5">
-                <Field label="PLZ" name="zip" placeholder="28195" defaultValue={v("zip", customer?.zip)} />
-                <Field label="Ort" name="city" placeholder="Bremen" defaultValue={v("city", customer?.city)} />
-              </div>
-            </div>
-          </div>
-
-          {isNew && (
-            <div className="border-t border-[#ececf0] pt-4 flex flex-col gap-3.5">
-              <div className="text-[13px] font-semibold">
-                Erstes Fahrzeug <span className="text-[#86868b] font-normal">(optional)</span>
-              </div>
+          {isNew ? (
+            <>
+              {/* Schnellanlage: nur das, was man am Tresen sicher weiß */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <Field label="Name *" name="name" placeholder="Vor- und Nachname" required defaultValue={v("name")} />
+                <Field label="Telefon" name="phone" placeholder="0170 …" defaultValue={v("phone")} />
                 <Field label="Kennzeichen" name="plate" placeholder="VER-AS 123" mono defaultValue={v("plate")} />
-                <Field label="KM-Stand" name="km" placeholder="85000" mono defaultValue={v("km")} />
               </div>
-              <VinLookupFields
-                initial={{
-                  vin: v("vin"),
-                  model: v("model"),
-                  year: v("year"),
-                  fuel: v("fuel"),
-                  engine: v("engine"),
-                }}
-              />
-            </div>
+
+              <details className="group border-t border-[#ececf0] pt-4">
+                <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden inline-flex items-center gap-2 text-[13px] font-semibold text-[#6e6e73] select-none hover:text-[#1a1d23]">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-open:rotate-90">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                  Mehr Angaben — Adresse, E-Mail, Fahrzeugdaten
+                </summary>
+                <div className="pt-3.5 flex flex-col gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <Field label="Firma" name="company" placeholder="optional" defaultValue={v("company")} />
+                    <Field label="E-Mail" name="email" placeholder="name@mail.de" defaultValue={v("email")} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <Field label="Straße und Hausnummer" name="street" placeholder="Musterstraße 12" defaultValue={v("street")} />
+                    <div className="grid grid-cols-[110px_1fr] gap-3.5">
+                      <Field label="PLZ" name="zip" placeholder="27299" defaultValue={v("zip")} />
+                      <Field label="Ort" name="city" placeholder="Langwedel" defaultValue={v("city")} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <Field label="KM-Stand" name="km" placeholder="85000" mono defaultValue={v("km")} />
+                  </div>
+                  <VinLookupFields
+                    initial={{
+                      vin: v("vin"),
+                      model: v("model"),
+                      year: v("year"),
+                      fuel: v("fuel"),
+                      engine: v("engine"),
+                    }}
+                  />
+                </div>
+              </details>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <Field label="Name *" name="name" placeholder="Vor- und Nachname" required defaultValue={v("name", customer?.name)} />
+                <Field label="Firma" name="company" placeholder="optional" defaultValue={v("company", customer?.company)} />
+                <Field label="Telefon" name="phone" placeholder="0170 …" defaultValue={v("phone", customer?.phone)} />
+                <Field label="E-Mail" name="email" placeholder="name@mail.de" defaultValue={v("email", customer?.email)} />
+              </div>
+
+              <div className="border-t border-[#ececf0] pt-4">
+                <div className="text-[13px] font-semibold mb-3">
+                  Anschrift{" "}
+                  <span className="text-[#86868b] font-normal">(erscheint auf Rechnungen)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <Field label="Straße und Hausnummer" name="street" placeholder="Musterstraße 12" defaultValue={v("street", customer?.street)} />
+                  <div className="grid grid-cols-[110px_1fr] gap-3.5">
+                    <Field label="PLZ" name="zip" placeholder="28195" defaultValue={v("zip", customer?.zip)} />
+                    <Field label="Ort" name="city" placeholder="Bremen" defaultValue={v("city", customer?.city)} />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {state?.error && (

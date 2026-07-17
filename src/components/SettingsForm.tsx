@@ -97,7 +97,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
 
           <div className="border-t border-[#ececf0] pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <Field
-              label="Stundensatz (€ netto)"
+              label={smallBusiness ? "Stundensatz (€)" : "Stundensatz (€ netto)"}
               name="hourly_rate"
               mono
               defaultValue={String(settings.hourly_rate)}

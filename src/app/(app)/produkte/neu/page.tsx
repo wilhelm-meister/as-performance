@@ -18,7 +18,10 @@ export default async function NeuesProduktPage() {
           >
             ← Zurück zu Produkten
           </Link>
-          <ProductForm hourlyRate={Number(settings?.hourly_rate ?? 89)} />
+          <ProductForm
+            hourlyRate={Number(settings?.hourly_rate ?? 89)}
+            smallBusiness={settings?.small_business ?? false}
+          />
         </div>
       </main>
     </>

@@ -9,9 +9,11 @@ import { saveProductAction } from "@/app/(app)/produkte/actions";
 export function ProductForm({
   product,
   hourlyRate,
+  smallBusiness,
 }: {
   product?: Product;
   hourlyRate: number;
+  smallBusiness: boolean;
 }) {
   const router = useRouter();
   const isNew = !product;
@@ -41,7 +43,9 @@ export function ProductForm({
   };
 
   const qtyLabel = type === "labor" ? "Stunden" : type === "part" ? "Stück" : "Menge";
-  const priceLabel = type === "labor" ? "Stundensatz (€ netto)" : "Preis (€ netto)";
+  const nettoTag = smallBusiness ? "" : " netto";
+  const priceLabel =
+    type === "labor" ? `Stundensatz (€${nettoTag})` : `Preis (€${nettoTag})`;
   const qtyHint =
     type === "labor"
       ? "Wie lange dauert die Arbeit üblicherweise? Wird als Menge eingefügt."

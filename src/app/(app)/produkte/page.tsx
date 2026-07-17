@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listProducts } from "@/lib/data";
+import { getSettings, listProducts } from "@/lib/data";
 import { euro, ITEM_TYPE_LABEL, ITEM_UNIT } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
@@ -10,7 +10,8 @@ export default async function ProduktePage({
   searchParams: Promise<{ q?: string; ok?: string }>;
 }) {
   const { q, ok } = await searchParams;
-  const products = await listProducts();
+  const [products, settings] = await Promise.all([listProducts(), getSettings()]);
+  const nettoTag = settings?.small_business ? "" : " (netto)";
 
   const query = (q ?? "").trim().toLowerCase();
   const filtered = products.filter(
@@ -49,7 +50,7 @@ export default async function ProduktePage({
                   <div>Bezeichnung</div>
                   <div className="text-right">Menge</div>
                   <div className="text-right">Einzelpreis</div>
-                  <div className="text-right">Gesamt (netto)</div>
+                  <div className="text-right">Gesamt{nettoTag}</div>
                   <div></div>
                 </div>
                 {filtered.map((p) => (

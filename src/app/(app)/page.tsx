@@ -6,7 +6,7 @@ import { OkBanner } from "@/components/OkBanner";
 import { DocRowList } from "@/components/DocTable";
 import { RevenueChart } from "@/components/RevenueChart";
 
-function KpiCard({ label, value, sub }: { label: string; value: string; sub: string }) {
+function MiniKpi({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="bg-white border border-[#e5e5e7] rounded-xl px-5 py-[18px]">
       <div className="text-[12.5px] text-[#6e6e73] mb-2.5 flex items-center gap-[7px]">
@@ -16,33 +16,6 @@ function KpiCard({ label, value, sub }: { label: string; value: string; sub: str
       <div className="text-[22px] md:text-[26px] font-bold font-mono tracking-[-1px]">{value}</div>
       <div className="text-[12px] text-[#86868b] mt-1">{sub}</div>
     </div>
-  );
-}
-
-function QuickAction({
-  href,
-  title,
-  sub,
-  icon,
-}: {
-  href: string;
-  title: string;
-  sub: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="w-full text-left p-[13px] px-[15px] border border-[#e5e5e7] rounded-[9px] bg-white flex items-center gap-3 hover:border-[#0071e3] hover:bg-[#f5f8ff]"
-    >
-      <div className="w-[34px] h-[34px] rounded-lg bg-[#f0f0f2] text-[#1d1d1f] flex items-center justify-center shrink-0">
-        {icon}
-      </div>
-      <div>
-        <div className="text-[13.5px] font-semibold">{title}</div>
-        <div className="text-[11.5px] text-[#86868b]">{sub}</div>
-      </div>
-    </Link>
   );
 }
 
@@ -77,6 +50,15 @@ export default async function DashboardPage({
 
   const recent = docs.slice(0, 5);
 
+  const satz =
+    openInvoices.length === 0
+      ? "Alles bezahlt — keine Rechnung wartet auf Geld."
+      : `${
+          openInvoices.length === 1
+            ? "1 Rechnung wartet"
+            : `${openInvoices.length} Rechnungen warten`
+        } auf Zahlung${overdueCount > 0 ? ` — ${overdueCount} überfällig` : ""}.`;
+
   return (
     <>
       <Topbar title="Dashboard" />
@@ -84,80 +66,90 @@ export default async function DashboardPage({
         <div className="max-w-[1180px] mx-auto anim-fadein">
           <OkBanner message={ok} />
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-            <KpiCard
-              label="Offene Forderungen"
-              value={euro(openSum)}
-              sub={`${openInvoices.length} offene Rechnungen${overdueCount > 0 ? ` · ${overdueCount} überfällig` : ""}`}
-            />
-            <KpiCard label="Umsatz (Monat)" value={euro(monthRevenue)} sub="bezahlte Rechnungen" />
-            <KpiCard label="Offene Angebote" value={String(openQuotes)} sub="warten auf Antwort" />
-            <KpiCard label="Kunden" value={String(customers.length)} sub="aktiv in der Kartei" />
+          {/* Eine große Zahl + ein großer Knopf */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4 mb-3">
+            <Link
+              href="/rechnungen"
+              className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-6 block hover:border-[#0071e3]"
+            >
+              <div className="text-[13px] text-[#6e6e73] mb-2">Offene Forderungen</div>
+              <div className="text-[38px] md:text-[46px] font-bold font-mono tracking-[-2px] leading-none">
+                {euro(openSum)}
+              </div>
+              <div className="text-[14px] text-[#6e6e73] mt-3">{satz}</div>
+            </Link>
+
+            <Link
+              href="/belege/neu?type=quote"
+              className="bg-[#0071e3] text-white rounded-xl px-6 py-6 flex flex-col justify-center hover:bg-[#0060c9]"
+            >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="mb-2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <div className="text-[19px] font-bold">Neues Angebot</div>
+              <div className="text-[12.5px] opacity-85 mt-1">
+                Kunde wählen, Positionen aus dem Katalog — fertig.
+              </div>
+            </Link>
           </div>
 
-          <RevenueChart invoices={invoices} year={thisYear} />
+          <div className="text-[13px] text-[#6e6e73] mb-5">
+            Oder:{" "}
+            <Link href="/belege/neu?type=invoice" className="text-[#0071e3] font-medium hover:text-[#0060c9]">
+              Rechnung direkt erstellen
+            </Link>
+            {" · "}
+            <Link href="/kunden/neu" className="text-[#0071e3] font-medium hover:text-[#0060c9]">
+              Kunde anlegen
+            </Link>
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4">
-            <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#ececf0] flex items-center justify-between">
-                <div className="font-semibold text-[14.5px]">Letzte Vorgänge</div>
-                <Link href="/rechnungen" className="text-[13px] text-[#0071e3] hover:text-[#0060c9]">
-                  Alle ansehen →
-                </Link>
+          {/* Alles Weitere eingeklappt */}
+          <details className="group">
+            <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#6e6e73] py-2 select-none hover:text-[#1a1d23]">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform group-open:rotate-90"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              Mehr anzeigen — Umsatz, Kennzahlen, letzte Vorgänge
+            </summary>
+
+            <div className="pt-4 flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <MiniKpi label="Umsatz (Monat)" value={euro(monthRevenue)} sub="bezahlte Rechnungen" />
+                <MiniKpi label="Offene Angebote" value={String(openQuotes)} sub="warten auf Antwort" />
+                <MiniKpi label="Kunden" value={String(customers.length)} sub="aktiv in der Kartei" />
               </div>
-              {recent.length > 0 ? (
-                <DocRowList docs={recent} />
-              ) : (
-                <div className="px-5 py-10 text-center text-[13px] text-[#86868b]">
-                  Noch keine Vorgänge — leg links oben dein erstes Angebot an.
+
+              <RevenueChart invoices={invoices} year={thisYear} />
+
+              <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-[#ececf0] flex items-center justify-between">
+                  <div className="font-semibold text-[14.5px]">Letzte Vorgänge</div>
+                  <Link href="/rechnungen" className="text-[13px] text-[#0071e3] hover:text-[#0060c9]">
+                    Alle ansehen →
+                  </Link>
                 </div>
-              )}
-            </div>
-
-            <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden self-start">
-              <div className="px-5 py-4 border-b border-[#ececf0] font-semibold text-[14.5px]">
-                Schnellzugriff
-              </div>
-              <div className="p-[18px] px-4 flex flex-col gap-2.5">
-                <QuickAction
-                  href="/belege/neu?type=quote"
-                  title="Angebot erstellen"
-                  sub="Kostenvoranschlag anlegen"
-                  icon={
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                  }
-                />
-                <QuickAction
-                  href="/belege/neu?type=invoice"
-                  title="Rechnung erstellen"
-                  sub="Direkt abrechnen"
-                  icon={
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="12" y1="18" x2="12" y2="12" />
-                    </svg>
-                  }
-                />
-                <QuickAction
-                  href="/kunden/neu"
-                  title="Kunde anlegen"
-                  sub="Neuen Kunden erfassen"
-                  icon={
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <line x1="19" y1="8" x2="19" y2="14" />
-                      <line x1="22" y1="11" x2="16" y2="11" />
-                    </svg>
-                  }
-                />
+                {recent.length > 0 ? (
+                  <DocRowList docs={recent} />
+                ) : (
+                  <div className="px-5 py-10 text-center text-[13px] text-[#86868b]">
+                    Noch keine Vorgänge — oben dein erstes Angebot anlegen.
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          </details>
 
           {!settings?.tax_number && (
             <div className="mt-4 rounded-xl border border-[#f0e2c0] bg-[#fdf8ec] px-5 py-4 text-[13px] text-[#9a6a00]">
@@ -165,8 +157,8 @@ export default async function DashboardPage({
               <Link href="/einstellungen" className="underline font-semibold">
                 Einstellungen
               </Link>{" "}
-              deine Werkstatt-Stammdaten (Adresse, Steuernummer, IBAN) — sie erscheinen
-              auf jedem Angebot und jeder Rechnung.
+              deine Werkstatt-Stammdaten (Adresse, Steuernummer, Bankverbindung) — sie
+              erscheinen auf jedem Angebot und jeder Rechnung.
             </div>
           )}
         </div>

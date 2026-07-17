@@ -30,7 +30,11 @@ export default async function ProduktBearbeitenPage({
           >
             ← Zurück zu Produkten
           </Link>
-          <ProductForm product={product} hourlyRate={Number(settings?.hourly_rate ?? 89)} />
+          <ProductForm
+            product={product}
+            hourlyRate={Number(settings?.hourly_rate ?? 89)}
+            smallBusiness={settings?.small_business ?? false}
+          />
 
           <div className="mt-4 bg-white border border-[#e5e5e7] rounded-xl px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
             <div className="text-[13px] text-[#6e6e73]">

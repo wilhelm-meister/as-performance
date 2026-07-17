@@ -49,8 +49,8 @@ export function effectiveStatus(doc: Pick<Doc, "type" | "status" | "due_date">):
 
 export const STATUS_LABEL: Record<EffectiveStatus, string> = {
   draft: "Entwurf",
-  sent: "Versendet",
-  accepted: "Angenommen",
+  sent: "Verschickt",
+  accepted: "✓ Rechnung erstellt",
   open: "Offen",
   paid: "Bezahlt",
   overdue: "Überfällig",

@@ -362,6 +362,18 @@ export function DocEditor({
               </div>
             </div>
 
+            {customer && !readOnly && !(customer.street && customer.zip && customer.city) && (
+              <div className="px-4 md:px-6 py-2.5 bg-[#fdf8ec] border-b border-[#ececf0] text-[12.5px] text-[#9a6a00]">
+                Für das PDF fehlt noch die Anschrift von {customer.name} —{" "}
+                <Link
+                  href={`/kunden/${customer.id}/bearbeiten`}
+                  className="font-semibold underline"
+                >
+                  jetzt ergänzen
+                </Link>
+              </div>
+            )}
+
             {vehicle && (
               <div className="px-4 md:px-6 py-3.5 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4 bg-[#fafafc] border-b border-[#ececf0]">
                 <div>
@@ -402,7 +414,7 @@ export function DocEditor({
               <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                 <div className="font-semibold text-[14px]">Positionen</div>
                 {!readOnly && (
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap items-center flex-1 sm:justify-end">
                     {products.length > 0 && (
                       <select
                         value=""
@@ -420,9 +432,9 @@ export function DocEditor({
                             ]);
                           }
                         }}
-                        className="h-8 px-2.5 border border-[#e5e5e7] rounded-[7px] bg-white text-[12.5px] font-medium cursor-pointer outline-none hover:border-[#0071e3] hover:text-[#0071e3] max-w-[220px]"
+                        className="h-9 px-3 flex-1 min-w-[210px] max-w-[380px] border border-[#0071e3] text-[#0071e3] rounded-lg bg-white text-[13px] font-semibold cursor-pointer outline-none hover:bg-[#f5f8ff]"
                       >
-                        <option value="">+ Aus Katalog…</option>
+                        <option value="">+ Position aus Katalog wählen…</option>
                         {products.map((p) => (
                           <option key={p.id} value={p.id}>
                             {ITEM_TYPE_LABEL[p.type]} · {p.name} ·{" "}
@@ -436,23 +448,9 @@ export function DocEditor({
                     <button
                       type="button"
                       onClick={() => addItem("labor")}
-                      className="h-8 px-3 border border-[#e5e5e7] rounded-[7px] bg-white text-[12.5px] font-medium cursor-pointer hover:border-[#0071e3] hover:text-[#0071e3]"
+                      className="h-9 px-3 border border-[#e5e5e7] rounded-lg bg-white text-[12.5px] font-medium cursor-pointer hover:border-[#0071e3] hover:text-[#0071e3] shrink-0"
                     >
-                      + Arbeitszeit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addItem("part")}
-                      className="h-8 px-3 border border-[#e5e5e7] rounded-[7px] bg-white text-[12.5px] font-medium cursor-pointer hover:border-[#0071e3] hover:text-[#0071e3]"
-                    >
-                      + Ersatzteil
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addItem("flat")}
-                      className="h-8 px-3 border border-[#e5e5e7] rounded-[7px] bg-white text-[12.5px] font-medium cursor-pointer hover:border-[#0071e3] hover:text-[#0071e3]"
-                    >
-                      + Pauschale
+                      + Leere Zeile
                     </button>
                   </div>
                 )}
@@ -461,7 +459,7 @@ export function DocEditor({
               <div className="border border-[#ececf0] rounded-[10px] overflow-hidden">
                 <div className="overflow-x-auto">
                 <div className="min-w-[660px]">
-                <div className="grid grid-cols-[80px_1fr_128px_110px_110px_36px] gap-2 px-3.5 py-[9px] bg-[#fafafc] border-b border-[#ececf0] text-[11px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
+                <div className="grid grid-cols-[92px_1fr_128px_110px_110px_36px] gap-2 px-3.5 py-[9px] bg-[#fafafc] border-b border-[#ececf0] text-[11px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
                   <div>Art</div>
                   <div>Bezeichnung</div>
                   <div className="text-right">Menge</div>
@@ -473,11 +471,31 @@ export function DocEditor({
                 {items.map((it, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[80px_1fr_128px_110px_110px_36px] gap-2 items-center px-3.5 py-2 border-b border-[#f0f0f3]"
+                    className="grid grid-cols-[92px_1fr_128px_110px_110px_36px] gap-2 items-center px-3.5 py-2 border-b border-[#f0f0f3]"
                   >
-                    <span className="inline-block px-2 py-[3px] rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73] text-center">
-                      {ITEM_TYPE_LABEL[it.type]}
-                    </span>
+                    {readOnly ? (
+                      <span className="inline-block px-2 py-[3px] rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73] text-center">
+                        {ITEM_TYPE_LABEL[it.type]}
+                      </span>
+                    ) : (
+                      <select
+                        value={it.type}
+                        onChange={(e) => {
+                          const t = e.target.value as ItemType;
+                          setItem(i, {
+                            type: t,
+                            // Beim Wechsel auf Arbeitszeit den Stundensatz vorschlagen, falls noch kein Preis drinsteht
+                            ...(t === "labor" && !it.price ? { price: hourlyRate } : {}),
+                          });
+                        }}
+                        title="Art der Position"
+                        className="h-8 w-full px-1 rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73] border border-transparent cursor-pointer outline-none hover:border-[#0071e3]"
+                      >
+                        <option value="labor">Arbeit</option>
+                        <option value="part">Teil</option>
+                        <option value="flat">Pausch.</option>
+                      </select>
+                    )}
                     {readOnly ? (
                       <div className="text-[13.5px] px-2">{it.desc || "—"}</div>
                     ) : (
@@ -542,8 +560,8 @@ export function DocEditor({
 
                 {items.length === 0 && (
                   <div className="px-5 py-[22px] text-center text-[13px] text-[#86868b]">
-                    Noch keine Positionen — oben Arbeitszeit, Ersatzteil oder Pauschale
-                    hinzufügen.
+                    Noch keine Positionen — oben aus dem Katalog wählen oder eine leere
+                    Zeile einfügen.
                   </div>
                 )}
                 </div>
@@ -565,7 +583,7 @@ export function DocEditor({
                     </>
                   ) : (
                     <div className="py-1.5 text-[12px] text-[#86868b]">
-                      Kleinunternehmerregelung § 19 UStG — keine Umsatzsteuer
+                      Keine Umsatzsteuer (§ 19 UStG)
                     </div>
                   )}
                   <div className="flex justify-between pt-3 mt-1.5 border-t border-[#e5e5e7] text-[16px] font-bold">
