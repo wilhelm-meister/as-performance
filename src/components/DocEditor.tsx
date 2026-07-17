@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CustomerWithVehicles, DocWithRefs, Item, ItemType, Product } from "@/lib/types";
@@ -36,6 +36,38 @@ const ITEM_PLACEHOLDER: Record<ItemType, string> = {
   part: "z.B. Bremsscheiben",
   flat: "z.B. Klimaservice",
 };
+
+// Textfeld, das mit dem Inhalt in der Höhe mitwächst — lange Beschreibungen
+// bleiben komplett sichtbar statt einzeilig abgeschnitten zu werden.
+function AutoGrowTextarea({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
 
 function ReminderSendButton({ docId, email }: { docId: string; email: string }) {
   const [armed, setArmed] = useState(false);
@@ -270,6 +302,8 @@ export function DocEditor({
     "w-full h-10 border border-[#e5e5e7] rounded-lg px-[11px] bg-white text-[14px] outline-none focus:border-[#0071e3] cursor-pointer disabled:cursor-default disabled:bg-[#fafafc] disabled:text-[#6e6e73]";
   const cellInput =
     "border border-transparent rounded-md h-8 px-2 text-[13.5px] outline-none bg-[#f5f5f7] focus:border-[#0071e3] focus:bg-white w-full";
+  const cellTextarea =
+    "border border-transparent rounded-md py-[6px] px-2 text-[13.5px] leading-5 outline-none bg-[#f5f5f7] focus:border-[#0071e3] focus:bg-white w-full resize-none overflow-hidden block";
 
   return (
     <div className="max-w-[1000px] mx-auto anim-fadein">
@@ -602,7 +636,7 @@ export function DocEditor({
                 {items.map((it, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[92px_1fr_128px_110px_110px_44px] gap-2 items-center px-3.5 py-2 border-b border-[#f0f0f3]"
+                    className="grid grid-cols-[92px_1fr_128px_110px_110px_44px] gap-2 items-start px-3.5 py-2 border-b border-[#f0f0f3]"
                   >
                     {readOnly ? (
                       <span className="inline-block px-2 py-[3px] rounded-md text-[11px] font-semibold bg-[#f0f0f2] text-[#6e6e73] text-center">
@@ -628,17 +662,19 @@ export function DocEditor({
                       </select>
                     )}
                     {readOnly ? (
-                      <div className="text-[13.5px] px-2">{it.desc || "—"}</div>
+                      <div className="text-[13.5px] px-2 py-[6px] leading-5 whitespace-pre-wrap break-words">
+                        {it.desc || "—"}
+                      </div>
                     ) : (
-                      <input
+                      <AutoGrowTextarea
                         value={it.desc}
-                        onChange={(e) => setItem(i, { desc: e.target.value })}
+                        onChange={(v) => setItem(i, { desc: v })}
                         placeholder={ITEM_PLACEHOLDER[it.type]}
-                        className={cellInput}
+                        className={cellTextarea}
                       />
                     )}
                     {readOnly ? (
-                      <div className="text-[13.5px] text-right font-mono px-2 whitespace-nowrap">
+                      <div className="text-[13.5px] text-right font-mono px-2 py-[6px] leading-5 whitespace-nowrap">
                         {it.qty}{" "}
                         <span className="text-[11px] text-[#86868b]">{ITEM_UNIT[it.type]}</span>
                       </div>
@@ -658,7 +694,7 @@ export function DocEditor({
                       </div>
                     )}
                     {readOnly ? (
-                      <div className="text-[13.5px] text-right font-mono px-2">
+                      <div className="text-[13.5px] text-right font-mono px-2 py-[6px] leading-5">
                         {euro(it.price)}
                       </div>
                     ) : (
@@ -671,14 +707,14 @@ export function DocEditor({
                         className={`${cellInput} text-right font-mono`}
                       />
                     )}
-                    <div className="text-right font-mono font-semibold text-[13.5px]">
+                    <div className="text-right font-mono font-semibold text-[13.5px] py-[6px] leading-5">
                       {euro(lineTotal(it))}
                     </div>
                     {!readOnly ? (
                       <button
                         type="button"
                         onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="text-[#d2d2d7] hover:text-[#ff3b30] text-[16px] cursor-pointer"
+                        className="text-[#d2d2d7] hover:text-[#ff3b30] text-[16px] leading-5 py-[3px] cursor-pointer self-start"
                         title="Position entfernen"
                       >
                         ×
