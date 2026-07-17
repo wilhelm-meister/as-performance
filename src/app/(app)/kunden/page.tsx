@@ -21,15 +21,21 @@ export default async function KundenPage({
     return hay.includes(query);
   });
 
-  const openByCustomer = new Map<string, number>();
+  // „Umsatz" je Kunde = Summe aller bezahlten Rechnungen (wie die Zahl auf dem Dashboard)
+  const revenueByCustomer = new Map<string, number>();
   for (const d of docs) {
-    if (d.type === "invoice" && d.status === "open") {
-      openByCustomer.set(
+    if (d.type === "invoice" && d.status === "paid") {
+      revenueByCustomer.set(
         d.customer_id,
-        (openByCustomer.get(d.customer_id) ?? 0) + Number(d.gross_total)
+        (revenueByCustomer.get(d.customer_id) ?? 0) + Number(d.gross_total)
       );
     }
   }
+
+  // Umsatzstärkste zuerst — bei Gleichstand bleibt die alphabetische Reihenfolge erhalten
+  const visible = filtered
+    .map((c) => ({ c, revenue: revenueByCustomer.get(c.id) ?? 0 }))
+    .sort((a, b) => b.revenue - a.revenue);
 
   return (
     <>
@@ -63,11 +69,10 @@ export default async function KundenPage({
               <div>Kunde</div>
               <div>Kontakt</div>
               <div>Fahrzeuge</div>
-              <div>Offen</div>
+              <div>Umsatz</div>
               <div></div>
             </div>
-            {filtered.map((c) => {
-              const open = openByCustomer.get(c.id) ?? 0;
+            {visible.map(({ c, revenue }) => {
               return (
                 <Link
                   key={c.id}
@@ -97,9 +102,9 @@ export default async function KundenPage({
                   </div>
                   <div
                     className="font-mono text-[13.5px] font-semibold"
-                    style={{ color: open > 0 ? "#9a6a00" : "#d2d2d7" }}
+                    style={{ color: revenue > 0 ? "#1d1d1f" : "#d2d2d7" }}
                   >
-                    {open > 0 ? euro(open) : "—"}
+                    {revenue > 0 ? euro(revenue) : "—"}
                   </div>
                   <div className="text-right text-[#d2d2d7]">→</div>
                 </Link>
