@@ -1,3 +1,5 @@
+import { SearchBox } from "@/components/SearchBox";
+
 export function Topbar({
   title,
   search,
@@ -17,29 +19,7 @@ export function Topbar({
         </div>
       </div>
 
-      {searchAction && (
-        <form action={searchAction} method="GET" className="relative">
-          <svg
-            className="absolute left-[11px] top-[9px]"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#86868b"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            name="q"
-            defaultValue={search ?? ""}
-            placeholder="Suchen…"
-            className="w-[140px] sm:w-[200px] lg:w-[280px] h-9 border border-[#e5e5e7] rounded-lg pl-[34px] pr-3 bg-[#f5f5f7] text-[13.5px] outline-none focus:border-[#0071e3]"
-          />
-        </form>
-      )}
+      {searchAction && <SearchBox basePath={searchAction} defaultValue={search} />}
 
       {children}
     </header>
