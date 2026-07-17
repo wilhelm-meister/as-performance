@@ -2,10 +2,52 @@
 // Der Schlüssel liegt als Umgebungsvariable GEMINI_API_KEY (nur in Vercel/.env.local,
 // nie im Code). Ohne Schlüssel meldet die App freundlich „noch nicht eingerichtet".
 
-const MODEL = "gemini-2.5-flash-lite";
+const API = "https://generativelanguage.googleapis.com/v1beta";
 
 export function geminiConfigured(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
+}
+
+// Die exakte Modell-ID variiert je nach Schlüssel/Zeitpunkt (sonst 404). Wir fragen
+// daher einmal die verfügbaren Modelle ab und wählen das beste „flash-lite" (Fallback:
+// flash), das generateContent kann — pro Serverless-Instanz gecacht.
+let cachedModel: string | null = null;
+
+async function resolveModel(key: string): Promise<{ model?: string; error?: string }> {
+  if (cachedModel) return { model: cachedModel };
+  let res: Response;
+  try {
+    res = await fetch(`${API}/models?key=${key}&pageSize=1000`, {
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch {
+    return { error: "Keine Verbindung zur Foto-Erkennung — bitte erneut versuchen." };
+  }
+  if (!res.ok) {
+    if (res.status === 400 || res.status === 403) {
+      return { error: "Der Gemini-Schlüssel wird nicht akzeptiert — bitte in Vercel prüfen." };
+    }
+    return { error: `Modell-Liste nicht abrufbar (Fehler ${res.status}).` };
+  }
+  const json = (await res.json()) as {
+    models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+  };
+  const usable = (json.models ?? [])
+    .filter((m) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
+    .map((m) => (m.name ?? "").replace(/^models\//, ""))
+    .filter(Boolean);
+  const pick = (re: RegExp) => usable.find((m) => re.test(m));
+  const model =
+    pick(/2\.5-flash-lite/) ||
+    pick(/flash-lite/) ||
+    pick(/2\.5-flash(?!-lite)/) ||
+    pick(/flash/) ||
+    usable[0];
+  if (!model) {
+    return { error: "Für diesen Gemini-Schlüssel ist kein passendes Modell verfügbar." };
+  }
+  cachedModel = model;
+  return { model };
 }
 
 /** Fertige, ins Fahrzeug übernehmbare Felder — alles editierbar, nichts blind vertrauen. */
@@ -137,36 +179,40 @@ export async function extractVehicleFromImage(
     };
   }
 
+  const resolved = await resolveModel(key);
+  if (resolved.error || !resolved.model) {
+    return { error: resolved.error ?? "Für diesen Gemini-Schlüssel ist kein Modell verfügbar." };
+  }
+
   let res: Response;
   try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(30000),
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: PROMPT },
-                { inline_data: { mime_type: mimeType, data: base64 } },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0,
-            responseMimeType: "application/json",
-            responseSchema: SCHEMA,
+    res = await fetch(`${API}/models/${resolved.model}:generateContent?key=${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: PROMPT },
+              { inline_data: { mime_type: mimeType, data: base64 } },
+            ],
           },
-        }),
-      }
-    );
+        ],
+        generationConfig: {
+          temperature: 0,
+          responseMimeType: "application/json",
+          responseSchema: SCHEMA,
+        },
+      }),
+    });
   } catch {
     return { error: "Keine Verbindung zur Foto-Erkennung — bitte erneut versuchen." };
   }
 
   if (!res.ok) {
+    // Gemerktes Modell wird doch abgelehnt → Cache leeren, damit der nächste Versuch neu wählt
+    if (res.status === 404) cachedModel = null;
     if (res.status === 400 || res.status === 403) {
       return { error: "Der Gemini-Schlüssel wird nicht akzeptiert — bitte in Vercel prüfen." };
     }
