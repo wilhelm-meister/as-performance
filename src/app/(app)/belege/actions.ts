@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCustomer, getDoc, getSettings } from "@/lib/data";
 import { computeTotals } from "@/lib/totals";
-import { docNoun, todayISO } from "@/lib/format";
-import { buildDocumentPdf } from "@/lib/pdf";
+import { REMINDER_TITLE, docNoun, effectiveStatus, todayISO } from "@/lib/format";
+import { buildDocumentPdf, buildReminderPdf } from "@/lib/pdf";
 import { sendDocumentMail } from "@/lib/mail";
 import type { Item } from "@/lib/types";
 
@@ -166,6 +166,133 @@ export async function deleteDocumentAction(id: string) {
   return {
     redirectTo: `${listPath}?ok=${encodeURIComponent(`${docNoun(doc.type)} ${doc.number} gelöscht`)}`,
   };
+}
+
+export async function cancelInvoiceAction(id: string) {
+  const doc = await getDoc(id);
+  if (!doc || doc.type !== "invoice") return { error: "Rechnung nicht gefunden." };
+  if (doc.status !== "open" && doc.status !== "paid") {
+    return { error: "Nur offene oder bezahlte Rechnungen können storniert werden." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("documents")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+      locked: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) return { error: "Stornieren fehlgeschlagen." };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Kopiert eine (z.B. stornierte) Rechnung als neuen offenen Entwurf mit neuer Nummer. */
+export async function duplicateInvoiceAction(id: string) {
+  const doc = await getDoc(id);
+  if (!doc || doc.type !== "invoice") return { error: "Rechnung nicht gefunden." };
+
+  const settings = await getSettings();
+  const today = todayISO();
+  const vatRate = Number(doc.vat_rate);
+  const totals = computeTotals(doc.items ?? [], vatRate);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_document", {
+    p: {
+      type: "invoice",
+      customer_id: doc.customer_id,
+      vehicle_id: doc.vehicle_id ?? "",
+      km: doc.km != null ? String(doc.km) : "",
+      issue_date: today,
+      due_date: addDaysISO(today, settings?.payment_days ?? 14),
+      items: doc.items ?? [],
+      vat_rate: String(vatRate),
+      net_total: String(totals.net),
+      vat_total: String(totals.vat),
+      gross_total: String(totals.gross),
+    },
+  });
+
+  if (error || !data) return { error: "Kopie fehlgeschlagen: " + (error?.message ?? "") };
+  const inv = data as { id: string; number: string };
+  revalidatePath("/", "layout");
+  return { ok: true, invoiceId: inv.id, number: inv.number };
+}
+
+/** Erhöht die Mahnstufe (1=Zahlungserinnerung, 2=1. Mahnung, 3=2. Mahnung). */
+export async function createReminderAction(id: string) {
+  const doc = await getDoc(id);
+  if (!doc || doc.type !== "invoice") return { error: "Rechnung nicht gefunden." };
+  if (effectiveStatus(doc) !== "overdue") {
+    return { error: "Gemahnt wird erst, wenn das Zahlungsziel überschritten ist." };
+  }
+  if (doc.reminder_level >= 3) {
+    return { error: "Die höchste Mahnstufe (2. Mahnung) ist bereits erreicht." };
+  }
+
+  const level = doc.reminder_level + 1;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("documents")
+    .update({
+      reminder_level: level,
+      reminded_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) return { error: "Mahnung konnte nicht erstellt werden." };
+  revalidatePath("/", "layout");
+  return { ok: true, level };
+}
+
+export async function sendReminderAction(id: string) {
+  const doc = await getDoc(id);
+  if (!doc || doc.type !== "invoice" || doc.reminder_level < 1) {
+    return { error: "Es wurde noch keine Mahnung erstellt." };
+  }
+
+  const [settings, customer] = await Promise.all([
+    getSettings(),
+    getCustomer(doc.customer_id),
+  ]);
+  if (!settings || !customer) return { error: "Stammdaten konnten nicht geladen werden." };
+
+  const to = (customer.email || "").trim();
+  if (!to) {
+    return { error: "Der Kunde hat keine E-Mail-Adresse hinterlegt — bitte zuerst beim Kunden ergänzen." };
+  }
+
+  const pdf = await buildReminderPdf({ doc, customer, settings });
+  const title = REMINDER_TITLE[doc.reminder_level];
+
+  const text = `Guten Tag ${customer.name},
+
+anbei erhalten Sie eine ${title} zur Rechnung ${doc.number} vom ${doc.issue_date.split("-").reverse().join(".")} über ${Number(doc.gross_total).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}.
+
+Sollten Sie den Betrag bereits überwiesen haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.
+
+Mit freundlichen Grüßen
+${settings.owner_name || settings.name}
+${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
+
+  const result = await sendDocumentMail({
+    to,
+    replyTo: settings.email || undefined,
+    subject: `${title} zur Rechnung ${doc.number} – ${settings.name}`,
+    text,
+    pdf,
+    filename: `${title.replace(/\.? /g, "-")}-${doc.number}.pdf`,
+  });
+
+  if (result.error) return { error: result.error };
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function sendDocumentAction(id: string) {

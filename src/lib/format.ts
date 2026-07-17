@@ -53,6 +53,7 @@ export const STATUS_LABEL: Record<EffectiveStatus, string> = {
   accepted: "✓ Rechnung erstellt",
   open: "Offen",
   paid: "Bezahlt",
+  cancelled: "Storniert",
   overdue: "Überfällig",
 };
 
@@ -62,7 +63,15 @@ export const STATUS_COLOR: Record<EffectiveStatus, string> = {
   accepted: "#1d8a4e",
   open: "#9a6a00",
   paid: "#1d8a4e",
+  cancelled: "#6e6e73",
   overdue: "#c9362b",
+};
+
+/** Mahnstufen: Titel der Stufe (reminder_level 1–3) */
+export const REMINDER_TITLE: Record<number, string> = {
+  1: "Zahlungserinnerung",
+  2: "1. Mahnung",
+  3: "2. Mahnung",
 };
 
 export const ITEM_TYPE_LABEL: Record<ItemType, string> = {

@@ -8,7 +8,9 @@ import { computeTotals, lineTotal } from "@/lib/totals";
 import {
   ITEM_TYPE_LABEL,
   ITEM_UNIT,
+  REMINDER_TITLE,
   docNoun,
+  effectiveStatus,
   euro,
   formatDate,
   formatDateTime,
@@ -18,11 +20,15 @@ import {
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
 import {
+  cancelInvoiceAction,
   convertQuoteAction,
+  createReminderAction,
   deleteDocumentAction,
+  duplicateInvoiceAction,
   markPaidAction,
   saveDocumentAction,
   sendDocumentAction,
+  sendReminderAction,
 } from "@/app/(app)/belege/actions";
 
 const ITEM_PLACEHOLDER: Record<ItemType, string> = {
@@ -30,6 +36,62 @@ const ITEM_PLACEHOLDER: Record<ItemType, string> = {
   part: "z.B. Bremsscheiben",
   flat: "z.B. Klimaservice",
 };
+
+function ReminderSendButton({ docId, email }: { docId: string; email: string }) {
+  const [armed, setArmed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+
+  if (!email) return null;
+
+  if (!armed) {
+    return (
+      <span>
+        <button
+          type="button"
+          onClick={() => setArmed(true)}
+          className="h-9 px-3.5 rounded-lg font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3]"
+        >
+          ✉ Mahnung senden
+        </button>
+        {error && <div className="mt-2 text-[12px] text-[#c9362b] max-w-[420px]">{error}</div>}
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-2 bg-[#f5f8ff] border border-[#b9d4f5] rounded-lg px-3 h-9 anim-popin">
+      <span className="text-[12.5px] font-medium text-[#424245]">
+        An <strong>{email}</strong> senden?
+      </span>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          startTransition(async () => {
+            setError(null);
+            const r = await sendReminderAction(docId);
+            if (r.error) setError(r.error);
+            setArmed(false);
+            router.refresh();
+          })
+        }
+        className="text-[12.5px] font-semibold text-[#0071e3] cursor-pointer hover:underline disabled:opacity-50"
+      >
+        {pending ? "Sendet…" : "Ja, senden"}
+      </button>
+      <span className="text-[#d2d2d7]">·</span>
+      <button
+        type="button"
+        onClick={() => setArmed(false)}
+        className="text-[12.5px] font-semibold text-[#6e6e73] cursor-pointer hover:underline"
+      >
+        Abbrechen
+      </button>
+    </span>
+  );
+}
 
 function SendButton({ docId, email }: { docId: string; email: string }) {
   const [armed, setArmed] = useState(false);
@@ -148,8 +210,13 @@ export function DocEditor({
   const vehicle = vehicles.find((v) => v.id === vehicleId) ?? null;
 
   const readOnly = Boolean(
-    doc && (doc.locked || doc.status === "paid" || doc.status === "accepted")
+    doc &&
+      (doc.locked ||
+        doc.status === "paid" ||
+        doc.status === "accepted" ||
+        doc.status === "cancelled")
   );
+  const isOverdue = doc ? effectiveStatus(doc) === "overdue" : false;
 
   // Bestehende Belege behalten ihren eingefrorenen Steuersatz; neue folgen den Einstellungen.
   const vatRate = doc ? Number(doc.vat_rate) : defaultVatRate;
@@ -253,6 +320,14 @@ export function DocEditor({
               action={() => markPaidAction(doc.id)}
             />
           )}
+          {type === "invoice" && (doc.status === "open" || doc.status === "paid") && (
+            <ConfirmButton
+              label="Stornieren"
+              question="Rechnung wirklich stornieren?"
+              variant="danger"
+              action={() => cancelInvoiceAction(doc.id)}
+            />
+          )}
           {!doc.sent_at && (doc.status === "draft" || doc.status === "open") && (
             <ConfirmButton
               label="Löschen"
@@ -261,6 +336,62 @@ export function DocEditor({
               action={() => deleteDocumentAction(doc.id)}
             />
           )}
+        </div>
+      )}
+
+      {doc && doc.type === "invoice" && doc.status === "open" && (isOverdue || doc.reminder_level > 0) && (
+        <div className="mb-4 rounded-[9px] bg-[#fdf8ec] border border-[#f0e2c0] px-4 py-3 flex items-center gap-2.5 flex-wrap">
+          <span className="text-[13px] text-[#9a6a00] font-medium">
+            {doc.reminder_level === 0
+              ? "Diese Rechnung ist überfällig."
+              : `${REMINDER_TITLE[doc.reminder_level]} erstellt am ${formatDateTime(doc.reminded_at)}.`}
+          </span>
+          <span className="flex-1" />
+          {doc.reminder_level > 0 && (
+            <a
+              href={`/api/belege/${doc.id}/mahnung`}
+              target="_blank"
+              rel="noreferrer"
+              className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3]"
+            >
+              Mahnung ansehen
+            </a>
+          )}
+          {doc.reminder_level > 0 && (
+            <ReminderSendButton docId={doc.id} email={doc.customer?.email ?? ""} />
+          )}
+          {isOverdue && doc.reminder_level < 3 && (
+            <ConfirmButton
+              label={`${REMINDER_TITLE[doc.reminder_level + 1]} erstellen`}
+              question={`${REMINDER_TITLE[doc.reminder_level + 1]} erstellen?`}
+              variant="primary"
+              action={() => createReminderAction(doc.id)}
+            />
+          )}
+        </div>
+      )}
+
+      {doc?.status === "cancelled" && (
+        <div className="mb-4 rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-4 py-3 flex items-center gap-2.5 flex-wrap">
+          <span className="text-[13px] text-[#c9362b] font-medium">
+            Diese Rechnung wurde am {formatDateTime(doc.cancelled_at)} storniert und ist
+            gegenstandslos.
+          </span>
+          <span className="flex-1" />
+          <ConfirmButton
+            label="Als neue Rechnung kopieren"
+            question="Korrektur-Rechnung erstellen?"
+            variant="primary"
+            action={async () => {
+              const r = await duplicateInvoiceAction(doc.id);
+              if (r.error) return { error: r.error };
+              return {
+                redirectTo: `/belege/${r.invoiceId}?ok=${encodeURIComponent(
+                  `Rechnung ${r.number} als Korrektur erstellt`
+                )}`,
+              };
+            }}
+          />
         </div>
       )}
 

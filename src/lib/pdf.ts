@@ -1,5 +1,6 @@
-import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, degrees, rgb } from "pdf-lib";
 import type { Customer, Doc, Settings, Vehicle } from "./types";
+import { REMINDER_TITLE } from "./format";
 import { lineTotal } from "./totals";
 
 // ---------- Text-Sicherheit (Standardfonts können nur WinAnsi-Zeichen) ----------
@@ -70,6 +71,29 @@ const ITEM_UNIT_PDF: Record<string, string> = {
   flat: "pausch.",
 };
 
+/** Logo laden (falls hinterlegt) — bei Fehlern einfach ohne Logo weitermachen */
+async function loadLogo(pdf: PDFDocument, settings: Settings): Promise<PDFImage | null> {
+  if (!settings.logo_url) return null;
+  try {
+    const res = await fetch(settings.logo_url, {
+      signal: AbortSignal.timeout(6000),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    // Dateityp anhand der Signatur erkennen — Endungen lügen manchmal
+    const isPng =
+      bytes.length > 3 &&
+      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+    const isJpg = bytes.length > 2 && bytes[0] === 0xff && bytes[1] === 0xd8;
+    if (isPng) return await pdf.embedPng(bytes);
+    if (isJpg) return await pdf.embedJpg(bytes);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function buildDocumentPdf({
   doc,
   customer,
@@ -89,28 +113,7 @@ export async function buildDocumentPdf({
   pdf.setTitle(`${noun} ${doc.number}`);
   pdf.setAuthor(settings.name);
 
-  // Logo laden (falls hinterlegt) — bei Fehlern einfach ohne Logo weitermachen
-  let logoImg: PDFImage | null = null;
-  if (settings.logo_url) {
-    try {
-      const res = await fetch(settings.logo_url, {
-        signal: AbortSignal.timeout(6000),
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const bytes = new Uint8Array(await res.arrayBuffer());
-        // Dateityp anhand der Signatur erkennen — Endungen lügen manchmal
-        const isPng =
-          bytes.length > 3 &&
-          bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
-        const isJpg = bytes.length > 2 && bytes[0] === 0xff && bytes[1] === 0xd8;
-        if (isPng) logoImg = await pdf.embedPng(bytes);
-        else if (isJpg) logoImg = await pdf.embedJpg(bytes);
-      }
-    } catch {
-      logoImg = null;
-    }
-  }
+  const logoImg = await loadLogo(pdf, settings);
 
   let page = pdf.addPage(A4);
 
@@ -148,8 +151,8 @@ export async function buildDocumentPdf({
 
   // ---- Kopf: Logo bzw. Werkstattname links, Kontakt rechts ----
   if (logoImg) {
-    const maxW = 180;
-    const maxH = 44;
+    const maxW = 250;
+    const maxH = 80;
     const scale = Math.min(maxW / logoImg.width, maxH / logoImg.height, 1);
     page.drawImage(logoImg, {
       x: M_LEFT,
@@ -220,6 +223,19 @@ export async function buildDocumentPdf({
 
   // ---- Titel ----
   text(`${noun} ${doc.number}`, M_LEFT, 596, 15, bold);
+
+  // ---- Storno-Kennzeichnung ----
+  if (doc.status === "cancelled") {
+    page.drawText("STORNIERT", {
+      x: 115,
+      y: 330,
+      size: 92,
+      font: bold,
+      color: rgb(0.82, 0.21, 0.17),
+      opacity: 0.14,
+      rotate: degrees(30),
+    });
+  }
 
   // ---- Fahrzeugkasten ----
   let tableTop = 570;
@@ -351,6 +367,11 @@ export async function buildDocumentPdf({
 
   // ---- Hinweistexte ----
   const notes: string[] = [];
+  if (doc.status === "cancelled") {
+    notes.push(
+      `STORNIERT am ${datePdf(doc.cancelled_at?.slice(0, 10))} — dieser Beleg ist gegenstandslos.`
+    );
+  }
   if (smallBusiness) {
     notes.push("Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).");
   }
@@ -399,6 +420,202 @@ export async function buildDocumentPdf({
     settings.bic ? `BIC ${settings.bic}` : "",
   ].filter(Boolean);
 
+  col1.forEach((l, i) => text(l, M_LEFT, 82 - i * 10, 7.5, font, GRAY));
+  col2.forEach((l, i) => text(l, 255, 82 - i * 10, 7.5, font, GRAY));
+  col3.forEach((l, i) => text(l, 410, 82 - i * 10, 7.5, font, GRAY));
+
+  return pdf.save();
+}
+
+// ---------------------------------------------------------------------------
+// Mahnschreiben (Zahlungserinnerung / 1. Mahnung / 2. Mahnung)
+// ---------------------------------------------------------------------------
+
+const REMINDER_BODY: Record<number, string> = {
+  1: "sicherlich ist es Ihrer Aufmerksamkeit entgangen, dass die unten aufgeführte Rechnung noch offen ist. Wir bitten Sie, den Betrag bis zum {FRIST} auf das unten angegebene Konto zu überweisen.",
+  2: "auf unsere Zahlungserinnerung haben wir leider noch keinen Zahlungseingang feststellen können. Wir bitten Sie nunmehr dringend, den offenen Betrag bis zum {FRIST} zu begleichen.",
+  3: "trotz Zahlungserinnerung und 1. Mahnung ist die unten aufgeführte Rechnung weiterhin offen. Wir fordern Sie letztmalig auf, den Betrag bis zum {FRIST} zu begleichen. Andernfalls behalten wir uns weitere Schritte vor.",
+};
+
+export async function buildReminderPdf({
+  doc,
+  customer,
+  settings,
+}: {
+  doc: Doc;
+  customer: Customer;
+  settings: Settings;
+}): Promise<Uint8Array> {
+  const level = Math.min(Math.max(doc.reminder_level, 1), 3);
+  const title = REMINDER_TITLE[level];
+  const remindedDate = (doc.reminded_at ?? new Date().toISOString()).slice(0, 10);
+  const deadline = addDaysISO(remindedDate, level === 1 ? 10 : 7);
+
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  pdf.setTitle(`${title} ${doc.number}`);
+  pdf.setAuthor(settings.name);
+
+  const logoImg = await loadLogo(pdf, settings);
+  const page = pdf.addPage(A4);
+
+  const text = (t: string, x: number, y: number, size: number, f: PDFFont = font, color = DARK) =>
+    page.drawText(safe(t), { x, y, size, font: f, color });
+  const rightText = (t: string, xRight: number, y: number, size: number, f: PDFFont = font, color = DARK) => {
+    const w = f.widthOfTextAtSize(safe(t), size);
+    page.drawText(safe(t), { x: xRight - w, y, size, font: f, color });
+  };
+  const wrap = (t: string, maxWidth: number, size: number, f: PDFFont = font): string[] => {
+    const words = safe(t).split(" ");
+    const lines: string[] = [];
+    let line = "";
+    for (const w of words) {
+      const probe = line ? `${line} ${w}` : w;
+      if (f.widthOfTextAtSize(probe, size) > maxWidth && line) {
+        lines.push(line);
+        line = w;
+      } else {
+        line = probe;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+
+  // Kopf (wie Rechnung)
+  if (logoImg) {
+    const scale = Math.min(250 / logoImg.width, 80 / logoImg.height, 1);
+    page.drawImage(logoImg, {
+      x: M_LEFT,
+      y: 812 - logoImg.height * scale,
+      width: logoImg.width * scale,
+      height: logoImg.height * scale,
+    });
+  } else {
+    text(settings.name, M_LEFT, 785, 16, bold);
+    text("KFZ-Werkstatt", M_LEFT, 770, 9, font, GRAY);
+  }
+  const headRight: string[] = [];
+  if (settings.street) headRight.push(settings.street);
+  if (settings.zip || settings.city) headRight.push(`${settings.zip} ${settings.city}`.trim());
+  if (settings.phone) headRight.push(`Telefon ${settings.phone}`);
+  if (settings.email) headRight.push(settings.email);
+  headRight.forEach((line, i) => rightText(line, M_RIGHT, 790 - i * 11, 8.5, font, GRAY));
+
+  const senderParts = [settings.name, settings.street, `${settings.zip} ${settings.city}`.trim()]
+    .filter((p) => p && p.trim());
+  if (senderParts.length > 1) {
+    text(senderParts.join(" · "), M_LEFT, 712, 7.5, font, GRAY);
+    page.drawLine({
+      start: { x: M_LEFT, y: 708 },
+      end: { x: M_LEFT + 200, y: 708 },
+      thickness: 0.5,
+      color: LIGHT_LINE,
+    });
+  }
+
+  let ry = 692;
+  const recipient = [
+    customer.company,
+    customer.name,
+    customer.street,
+    `${customer.zip} ${customer.city}`.trim(),
+  ].filter((l) => l && l.trim());
+  for (const line of recipient) {
+    text(line, M_LEFT, ry, 10.5);
+    ry -= 14;
+  }
+
+  // Meta rechts
+  const metaRows: Array<[string, string]> = [
+    ["Datum", datePdf(remindedDate)],
+    ["Rechnungs-Nr.", doc.number],
+    ["Zahlbar bis", datePdf(deadline)],
+  ];
+  let my = 692;
+  for (const [label, value] of metaRows) {
+    text(label, 380, my, 9, font, GRAY);
+    rightText(value, M_RIGHT, my, 9, bold);
+    my -= 15;
+  }
+
+  // Titel + Anschreiben
+  text(title, M_LEFT, 596, 15, bold);
+
+  let y = 570;
+  const anrede = customer.company
+    ? "Sehr geehrte Damen und Herren,"
+    : `Guten Tag ${customer.name},`;
+  text(anrede, M_LEFT, y, 10);
+  y -= 20;
+
+  const body = REMINDER_BODY[level].replace("{FRIST}", datePdf(deadline));
+  for (const line of wrap(body, M_RIGHT - M_LEFT, 10)) {
+    text(line, M_LEFT, y, 10);
+    y -= 15;
+  }
+  y -= 4;
+  for (const line of wrap(
+    "Sollten Sie den Betrag zwischenzeitlich bereits überwiesen haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.",
+    M_RIGHT - M_LEFT,
+    10
+  )) {
+    text(line, M_LEFT, y, 10);
+    y -= 15;
+  }
+
+  // Rechnungs-Bezugskasten
+  y -= 14;
+  page.drawRectangle({
+    x: M_LEFT,
+    y: y - 58,
+    width: M_RIGHT - M_LEFT,
+    height: 70,
+    color: BOX_BG,
+  });
+  text("Rechnung", M_LEFT + 14, y - 4, 8.5, bold, GRAY);
+  text(`${doc.number} vom ${datePdf(doc.issue_date)}`, M_LEFT + 14, y - 19, 10.5, bold);
+  text(
+    `Ursprünglich zahlbar bis ${datePdf(doc.due_date)}`,
+    M_LEFT + 14,
+    y - 35,
+    9,
+    font,
+    GRAY
+  );
+  rightText("Offener Betrag", M_RIGHT - 14, y - 4, 8.5, bold, GRAY);
+  rightText(euroPdf(Number(doc.gross_total)), M_RIGHT - 14, y - 26, 15, bold);
+  y -= 84;
+
+  text("Mit freundlichen Grüßen", M_LEFT, y, 10);
+  y -= 15;
+  text(settings.owner_name || settings.name, M_LEFT, y, 10);
+
+  // Fußzeile (wie Rechnung)
+  page.drawLine({
+    start: { x: M_LEFT, y: 95 },
+    end: { x: M_RIGHT, y: 95 },
+    thickness: 0.5,
+    color: LIGHT_LINE,
+  });
+  const col1 = [
+    settings.name,
+    settings.owner_name ? `Inhaber: ${settings.owner_name}` : "",
+    settings.street,
+    `${settings.zip} ${settings.city}`.trim(),
+  ].filter(Boolean);
+  const col2 = [
+    settings.phone ? `Telefon ${settings.phone}` : "",
+    settings.email,
+    settings.tax_number ? `Steuernummer ${settings.tax_number}` : "",
+    settings.vat_id ? `USt-IdNr. ${settings.vat_id}` : "",
+  ].filter(Boolean);
+  const col3 = [
+    settings.bank_name,
+    settings.iban ? `IBAN ${settings.iban}` : "",
+    settings.bic ? `BIC ${settings.bic}` : "",
+  ].filter(Boolean);
   col1.forEach((l, i) => text(l, M_LEFT, 82 - i * 10, 7.5, font, GRAY));
   col2.forEach((l, i) => text(l, 255, 82 - i * 10, 7.5, font, GRAY));
   col3.forEach((l, i) => text(l, 410, 82 - i * 10, 7.5, font, GRAY));

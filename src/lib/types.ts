@@ -9,9 +9,9 @@ export type Item = {
 
 export type DocType = "quote" | "invoice";
 
-// Status im Feld: quote → draft|sent|accepted, invoice → open|paid.
+// Status im Feld: quote → draft|sent|accepted, invoice → open|paid|cancelled.
 // "overdue" wird nie gespeichert, sondern aus due_date abgeleitet.
-export type DocStatus = "draft" | "sent" | "accepted" | "open" | "paid";
+export type DocStatus = "draft" | "sent" | "accepted" | "open" | "paid" | "cancelled";
 export type EffectiveStatus = DocStatus | "overdue";
 
 export type Customer = {
@@ -60,6 +60,10 @@ export type Doc = {
   sent_at: string | null;
   sent_to: string | null;
   paid_at: string | null;
+  cancelled_at: string | null;
+  /** 0 = nie gemahnt, 1 = Zahlungserinnerung, 2 = 1. Mahnung, 3 = 2. Mahnung */
+  reminder_level: number;
+  reminded_at: string | null;
   source_quote: string | null;
   converted_to: string | null;
   locked: boolean;
