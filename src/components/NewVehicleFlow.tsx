@@ -234,11 +234,14 @@ export function NewVehicleFlow({
 
   return (
     <div>
+      {/* Kein capture="environment" — das zwingt Handys direkt in die Kamera und
+          blendet die Galerie aus. Ohne das Attribut kommt der normale Dialog
+          (Fotomediathek / Foto aufnehmen / Datei), so lassen sich auch schon
+          vorhandene Fahrzeugschein-Fotos hochladen. */}
       <input
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={onPhoto}
         className="hidden"
       />
@@ -257,7 +260,7 @@ export function NewVehicleFlow({
         <ChoiceCard
           icon="📸"
           title="Fahrzeugschein fotografieren"
-          desc="Foto machen — die KI liest Kennzeichen, Marke, FIN, Erstzulassung, Schlüsselnummer und mehr automatisch aus."
+          desc="Foto machen oder ein vorhandenes Bild wählen — die KI liest Kennzeichen, Marke, FIN, Erstzulassung, Schlüsselnummer und mehr automatisch aus."
           onClick={() => fileRef.current?.click()}
         />
         <ChoiceCard
