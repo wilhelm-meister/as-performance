@@ -151,7 +151,9 @@ function buildEngine(ccm: string, kw: string): string {
 // (z.B. bewusste Eigenschreibweisen) bleibt unangetastet.
 function titleCaseIfUpper(s: string): string {
   const t = s.trim();
-  if (!t || /[a-zäöüß]/.test(t)) return t;
+  // „ß" hat keine Großform → zählt NICHT als Kleinbuchstabe, sonst blieben
+  // „HAUPTSTRAßE" oder Namen wie „WEIß"/„STRAUß" fälschlich in Großschrift.
+  if (!t || /[a-zäöü]/.test(t)) return t;
   return t.toLowerCase().replace(/(^|[\s\-/.'])(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase());
 }
 
