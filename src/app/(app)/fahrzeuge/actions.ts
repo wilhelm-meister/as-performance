@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { extractVehicleFromImage, type VehicleExtract } from "@/lib/gemini";
+import { normalizePlate } from "@/lib/format";
 
 export type FormState = { error?: string; values?: Record<string, string> } | null;
 
@@ -28,7 +29,7 @@ export async function saveVehicleAction(
   _prev: FormState,
   fd: FormData
 ): Promise<FormState & { ok?: boolean; id?: string }> {
-  const plate = str(fd, "plate").toUpperCase();
+  const plate = normalizePlate(str(fd, "plate"));
   const vin = str(fd, "vin").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (!plate && !vin) {
     return { error: "Bitte mindestens ein Kennzeichen oder eine FIN eingeben.", values: echo(fd) };

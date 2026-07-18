@@ -2,6 +2,8 @@
 // Der Schlüssel liegt als Umgebungsvariable GEMINI_API_KEY (nur in Vercel/.env.local,
 // nie im Code). Ohne Schlüssel meldet die App freundlich „noch nicht eingerichtet".
 
+import { normalizePlate } from "./format";
+
 const API = "https://generativelanguage.googleapis.com/v1beta";
 
 export function geminiConfigured(): boolean {
@@ -174,7 +176,7 @@ function mapRaw(raw: Raw): VehicleExtract {
   const date = parseDate(raw.erstzulassung ?? "");
   const model = [raw.marke, raw.typ].map((x) => (x ?? "").trim()).filter(Boolean).join(" ");
   return {
-    plate: (raw.kennzeichen ?? "").toUpperCase().replace(/\s+/g, " ").trim(),
+    plate: normalizePlate(raw.kennzeichen),
     model,
     vin: (raw.fin ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
     year: date.year,

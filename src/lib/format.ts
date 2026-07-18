@@ -90,6 +90,19 @@ export function docNoun(type: "quote" | "invoice"): string {
   return type === "quote" ? "Angebot" : "Rechnung";
 }
 
+/**
+ * Deutsches Kennzeichen einheitlich schreiben: „VER-HB 583" —
+ * Unterscheidungszeichen, Bindestrich, Erkennungsbuchstaben, Leerzeichen, Zahl (+ E/H).
+ * Passt der Text nicht ins deutsche Schema (z. B. ausländisch), bleibt er unverändert.
+ */
+export function normalizePlate(raw: string | null | undefined): string {
+  const s = (raw ?? "").trim().toUpperCase();
+  if (!s) return "";
+  const m = s.match(/^([A-Z]{1,3})[\s-]+([A-Z]{1,2})[\s-]*(\d{1,4})\s*([EH]?)$/);
+  if (!m) return s;
+  return `${m[1]}-${m[2]} ${m[3]}${m[4]}`;
+}
+
 /** „Baujahr 2019 · Diesel · 2,0 l · 110 kW (150 PS)" — nur vorhandene Angaben */
 export function vehicleDetails(v: {
   year?: number | null;
