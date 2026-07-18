@@ -51,11 +51,15 @@ function NavButton({
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, first }: { children: React.ReactNode; first?: boolean }) {
   return (
-    <div className="hidden md:block text-[10.5px] uppercase tracking-[0.8px] text-[#6e6e73] px-3 pt-3.5 pb-1.5 font-semibold">
-      {children}
-    </div>
+    <>
+      {/* Auf dem schmalen Handy-Rail (keine Labels) trennt eine dezente Linie die Gruppen */}
+      {!first && <div className="md:hidden mx-2 my-2 h-px bg-[#313135]" />}
+      <div className="hidden md:block text-[10.5px] uppercase tracking-[0.8px] text-[#6e6e73] px-3 pt-3.5 pb-1.5 font-semibold">
+        {children}
+      </div>
+    </>
   );
 }
 
@@ -90,7 +94,7 @@ export function Sidebar({
       </div>
 
       <nav className="px-2 md:px-3 py-3.5 flex flex-col gap-0.5 flex-1">
-        <SectionLabel>Übersicht</SectionLabel>
+        <SectionLabel first>Übersicht</SectionLabel>
         <NavButton
           href="/"
           active={path === "/"}
@@ -105,7 +109,7 @@ export function Sidebar({
           }
         />
 
-        <SectionLabel>Verwaltung</SectionLabel>
+        <SectionLabel>Werkstatt</SectionLabel>
         <NavButton
           href="/fahrzeuge"
           active={path.startsWith("/fahrzeuge")}
@@ -132,18 +136,7 @@ export function Sidebar({
             </svg>
           }
         />
-        <NavButton
-          href="/produkte"
-          active={path.startsWith("/produkte")}
-          label="Produkte"
-          icon={
-            <svg {...iconProps}>
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-              <polyline points="3.29 7 12 12 20.71 7" />
-              <line x1="12" y1="22" x2="12" y2="12" />
-            </svg>
-          }
-        />
+        <SectionLabel>Abrechnung</SectionLabel>
         <NavButton
           href="/angebote"
           active={path.startsWith("/angebote")}
@@ -174,6 +167,20 @@ export function Sidebar({
               <polyline points="14 2 14 8 20 8" />
               <line x1="12" y1="18" x2="12" y2="12" />
               <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+          }
+        />
+
+        <SectionLabel>Katalog</SectionLabel>
+        <NavButton
+          href="/produkte"
+          active={path.startsWith("/produkte")}
+          label="Produkte"
+          icon={
+            <svg {...iconProps}>
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.29 7 12 12 20.71 7" />
+              <line x1="12" y1="22" x2="12" y2="12" />
             </svg>
           }
         />
