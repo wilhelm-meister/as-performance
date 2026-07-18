@@ -144,6 +144,15 @@ function buildEngine(ccm: string, kw: string): string {
   return parts.join(" · ");
 }
 
+// Fahrzeugscheine sind oft komplett in GROSSBUCHSTABEN gedruckt. Voll-große Werte
+// bringen wir in Titel-Schreibweise („BEHMANN" → „Behmann"); gemischt Geschriebenes
+// (z.B. bewusste Eigenschreibweisen) bleibt unangetastet.
+function titleCaseIfUpper(s: string): string {
+  const t = s.trim();
+  if (!t || /[a-zäöüß]/.test(t)) return t;
+  return t.toLowerCase().replace(/(^|[\s\-/.'])(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase());
+}
+
 function mapHolder(raw: Raw): HolderExtract | null {
   const name = [raw.halter_vorname, raw.halter_name]
     .map((x) => (x ?? "").trim())
@@ -153,7 +162,12 @@ function mapHolder(raw: Raw): HolderExtract | null {
   const zip = (raw.halter_plz ?? "").replace(/[^\d]/g, "").trim();
   const city = (raw.halter_ort ?? "").trim();
   if (!name && !street && !city) return null;
-  return { name, street, zip, city };
+  return {
+    name: titleCaseIfUpper(name),
+    street: titleCaseIfUpper(street),
+    zip,
+    city: titleCaseIfUpper(city),
+  };
 }
 
 function mapRaw(raw: Raw): VehicleExtract {
