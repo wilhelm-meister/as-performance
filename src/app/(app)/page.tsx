@@ -84,17 +84,27 @@ export default async function DashboardPage({
 
             <div className="flex flex-col gap-3">
               <Link
-                href="/belege/neu?type=invoice"
+                href="/fahrzeuge/neu"
                 className="flex-1 bg-[#0071e3] text-white rounded-xl px-6 py-5 flex flex-col justify-center hover:bg-[#0060c9]"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="mb-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <div className="text-[18px] font-bold">Fahrzeugschein hochladen</div>
+                <div className="text-[12.5px] opacity-85 mt-0.5">
+                  Foto machen — Kunde und Fahrzeug werden automatisch erkannt.
+                </div>
+              </Link>
+              <Link
+                href="/belege/neu?type=invoice"
+                className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-3.5 flex items-center gap-2.5 font-bold text-[15px] hover:border-[#0071e3] hover:text-[#0071e3]"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <div className="text-[18px] font-bold">Neue Rechnung</div>
-                <div className="text-[12.5px] opacity-85 mt-0.5">
-                  Kunde wählen, Positionen aus dem Katalog — fertig.
-                </div>
+                Neue Rechnung
               </Link>
               <Link
                 href="/belege/neu?type=quote"
