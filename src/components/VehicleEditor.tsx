@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Customer, Vehicle } from "@/lib/types";
 import type { HolderExtract } from "@/lib/gemini";
@@ -22,6 +23,9 @@ export type VehiclePrefill = {
 };
 
 type LeanCustomer = Pick<Customer, "id" | "name" | "company">;
+export type ExistingVehicle = { id: string; plate: string; vin: string; customerName: string };
+
+const normPlate = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
 const field =
   "w-full h-10 border border-[#e5e5e7] rounded-lg px-3 text-[14px] outline-none focus:border-[#0071e3] bg-white";
@@ -50,6 +54,7 @@ function Labeled({ label, children }: { label: string; children: React.ReactNode
 export function VehicleEditor({
   vehicle,
   customers: customersProp,
+  existingVehicles = [],
   presetCustomerId,
   prefill,
   holder,
@@ -60,6 +65,7 @@ export function VehicleEditor({
 }: {
   vehicle?: Vehicle;
   customers: LeanCustomer[];
+  existingVehicles?: ExistingVehicle[];
   presetCustomerId?: string;
   prefill?: VehiclePrefill;
   holder?: HolderExtract | null;
@@ -104,6 +110,16 @@ export function VehicleEditor({
   const [looking, setLooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+
+  // Dubletten-Erkennung: gleiches Fahrzeug (per FIN oder Kennzeichen) nicht doppelt anlegen.
+  // Wichtig bei Kunden mit mehreren Autos — der Scan landet so am richtigen Fahrzeug.
+  const dupe = isNew
+    ? existingVehicles.find((v) => {
+        const vinMatch = cleanVin(vin).length >= 11 && cleanVin(vin) === cleanVin(v.vin);
+        const plateMatch = normPlate(plate).length >= 4 && normPlate(plate) === normPlate(v.plate);
+        return vinMatch || plateMatch;
+      })
+    : undefined;
 
   const takeHolder = () => {
     if (!holder?.name) return;
@@ -227,6 +243,19 @@ export function VehicleEditor({
         </div>
 
         <div className="px-4 md:px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {dupe && (
+            <div className="sm:col-span-2 rounded-lg bg-[#fff8ed] border border-[#f0d9a8] px-4 py-3 text-[13px] text-[#8a5a00]">
+              ⚠ Dieses Fahrzeug ist schon angelegt: <strong>{dupe.plate}</strong>
+              {dupe.customerName ? ` · ${dupe.customerName}` : ""}.{" "}
+              <Link
+                href={`/fahrzeuge/${dupe.id}`}
+                className="font-semibold text-[#0071e3] hover:text-[#0060c9] underline"
+              >
+                Vorhandenes öffnen
+              </Link>{" "}
+              statt doppelt anzulegen.
+            </div>
+          )}
           {holder?.name && (
             <div className="sm:col-span-2">
               {holderMatch ? (

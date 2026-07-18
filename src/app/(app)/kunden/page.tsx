@@ -65,7 +65,7 @@ export default async function KundenPage({
             <div className="min-w-[760px]">
             <div className="grid grid-cols-[2fr_1.6fr_1.4fr_1fr_90px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
               <div>Kunde</div>
-              <div>Kontakt</div>
+              <div>Adresse</div>
               <div>Fahrzeuge</div>
               <div>Umsatz</div>
               <div></div>
@@ -89,14 +89,26 @@ export default async function KundenPage({
                     </div>
                   </div>
                   <div className="text-[13px] text-[#424245] min-w-0">
-                    <div className="truncate">{c.phone || "—"}</div>
-                    <div className="text-[#86868b] text-[12px] truncate">{c.email}</div>
+                    <div className="truncate">{c.street || "—"}</div>
+                    <div className="text-[#86868b] text-[12px] truncate">
+                      {[c.zip, c.city].filter(Boolean).join(" ")}
+                    </div>
                   </div>
-                  <div className="text-[12.5px] font-mono text-[#424245]">
-                    {c.vehicles.length
-                      ? c.vehicles[0].plate +
-                        (c.vehicles.length > 1 ? ` +${c.vehicles.length - 1}` : "")
-                      : "—"}
+                  <div className="min-w-0">
+                    {c.vehicles.length === 0 ? (
+                      <span className="text-[12.5px] text-[#d2d2d7]">—</span>
+                    ) : (
+                      <>
+                        <div className="text-[12.5px] font-mono text-[#424245] truncate">
+                          {c.vehicles[0].plate}
+                        </div>
+                        {c.vehicles.length > 1 && (
+                          <div className="text-[11.5px] text-[#86868b]">
+                            +{c.vehicles.length - 1} weitere
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                   <div
                     className="font-mono text-[13.5px] font-semibold"

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listCustomers } from "@/lib/data";
+import { listCustomers, listVehicles } from "@/lib/data";
 import { Topbar } from "@/components/Topbar";
 import { NewVehicleFlow } from "@/components/NewVehicleFlow";
 
@@ -9,8 +9,15 @@ export default async function NeuesFahrzeugPage({
   searchParams: Promise<{ customer?: string }>;
 }) {
   const { customer } = await searchParams;
-  const customers = await listCustomers();
+  const [customers, vehicles] = await Promise.all([listCustomers(), listVehicles()]);
   const lean = customers.map((c) => ({ id: c.id, name: c.name, company: c.company }));
+  // Bestehende Fahrzeuge (schlank) für die Dubletten-Erkennung beim Scannen/Anlegen
+  const existing = vehicles.map((v) => ({
+    id: v.id,
+    plate: v.plate,
+    vin: v.vin,
+    customerName: v.customer?.name ?? "",
+  }));
 
   return (
     <>
@@ -25,7 +32,7 @@ export default async function NeuesFahrzeugPage({
           >
             ← Zurück zu Fahrzeugen
           </Link>
-          <NewVehicleFlow customers={lean} presetCustomerId={customer} />
+          <NewVehicleFlow customers={lean} existingVehicles={existing} presetCustomerId={customer} />
         </div>
       </main>
     </>

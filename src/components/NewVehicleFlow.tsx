@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import type { Customer } from "@/lib/types";
 import type { HolderExtract } from "@/lib/gemini";
-import { VehicleEditor, type VehiclePrefill } from "./VehicleEditor";
+import { VehicleEditor, type VehiclePrefill, type ExistingVehicle } from "./VehicleEditor";
 import { cleanVin, isValidVin } from "@/lib/vin";
 import { scanFahrzeugscheinAction } from "@/app/(app)/fahrzeuge/actions";
 
@@ -67,9 +67,11 @@ function ChoiceCard({
 
 export function NewVehicleFlow({
   customers,
+  existingVehicles = [],
   presetCustomerId,
 }: {
   customers: Pick<Customer, "id" | "name" | "company">[];
+  existingVehicles?: ExistingVehicle[];
   presetCustomerId?: string;
 }) {
   const [mode, setMode] = useState<Mode>("choose");
@@ -147,6 +149,7 @@ export function NewVehicleFlow({
     return (
       <VehicleEditor
         customers={customers}
+        existingVehicles={existingVehicles}
         presetCustomerId={presetCustomerId}
         prefill={mode === "form" ? prefill : undefined}
         holder={mode === "form" ? holder : undefined}
