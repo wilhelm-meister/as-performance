@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listVehicles } from "@/lib/data";
-import { formatKm, vehicleDetails } from "@/lib/format";
+import { vehicleDetails } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { PlateChip } from "@/components/PlateChip";
@@ -48,19 +48,19 @@ export default async function FahrzeugePage({
 
           <div className="bg-white border border-[#e5e5e7] rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
-              <div className="min-w-[720px]">
-                <div className="grid grid-cols-[150px_1.6fr_1.4fr_1fr_40px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
+              <div className="min-w-[740px]">
+                <div className="grid grid-cols-[150px_1.5fr_1.3fr_1.2fr_40px] px-5 py-[11px] bg-[#fafafc] border-b border-[#ececf0] text-[11.5px] uppercase tracking-[0.4px] text-[#86868b] font-semibold">
                   <div>Kennzeichen</div>
                   <div>Fahrzeug</div>
                   <div>Kunde</div>
-                  <div>KM-Stand</div>
+                  <div>FIN</div>
                   <div></div>
                 </div>
                 {filtered.map((v) => (
                   <Link
                     key={v.id}
                     href={`/fahrzeuge/${v.id}`}
-                    className="grid grid-cols-[150px_1.6fr_1.4fr_1fr_40px] items-center px-5 py-[13px] border-b border-[#f0f0f3] hover:bg-[#f5f5f7]"
+                    className="grid grid-cols-[150px_1.5fr_1.3fr_1.2fr_40px] items-center px-5 py-[13px] border-b border-[#f0f0f3] hover:bg-[#f5f5f7]"
                   >
                     <div>
                       <PlateChip plate={v.plate || "—"} />
@@ -78,7 +78,7 @@ export default async function FahrzeugePage({
                         )}
                       </div>
                       <div className="text-[12px] text-[#86868b] truncate">
-                        {vehicleDetails(v) || (v.vin ? `FIN ${v.vin}` : "—")}
+                        {vehicleDetails(v) || "—"}
                       </div>
                     </div>
                     <div className="text-[13px] text-[#424245] min-w-0 truncate">
@@ -88,7 +88,9 @@ export default async function FahrzeugePage({
                         <span className="text-[#c7c7cc]">— kein Kunde —</span>
                       )}
                     </div>
-                    <div className="font-mono text-[13px] text-[#424245]">{formatKm(v.km)}</div>
+                    <div className="font-mono text-[12px] text-[#424245] truncate min-w-0">
+                      {v.vin ? v.vin : <span className="text-[#c7c7cc]">—</span>}
+                    </div>
                     <div className="text-right text-[#d2d2d7]">→</div>
                   </Link>
                 ))}
