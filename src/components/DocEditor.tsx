@@ -339,62 +339,67 @@ export function DocEditor({
       </div>
 
       {doc && (
-        <div className="mb-4 flex items-center gap-2.5 flex-wrap">
-          <StatusBadge doc={doc} />
-          {doc.sent_at && (
-            <span className="text-[12.5px] text-[#1d8a4e] font-medium">
-              ✓ Gesendet am {formatDateTime(doc.sent_at)} an {doc.sent_to}
-            </span>
-          )}
-          <span className="flex-1" />
-          <a
-            href={`/api/belege/${doc.id}/pdf`}
-            target="_blank"
-            rel="noreferrer"
-            className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3]"
-          >
-            PDF ansehen
-          </a>
-          <SendButton docId={doc.id} email={doc.customer?.email ?? ""} />
-          {type === "quote" && doc.status !== "accepted" && (
-            <ConfirmButton
-              label="→ In Rechnung umwandeln"
-              question="Rechnung erstellen?"
-              variant="primary"
-              action={async () => {
-                const r = await convertQuoteAction(doc.id);
-                if (r.error) return { error: r.error };
-                return {
-                  redirectTo: `/belege/${r.invoiceId}?ok=${encodeURIComponent(
-                    `Angebot in Rechnung ${r.number} umgewandelt`
-                  )}`,
-                };
-              }}
-            />
-          )}
-          {type === "invoice" && doc.status === "open" && (
-            <ConfirmButton
-              label="✓ Als bezahlt markieren"
-              question="Zahlung eingegangen?"
-              action={() => markPaidAction(doc.id)}
-            />
-          )}
-          {type === "invoice" && (doc.status === "open" || doc.status === "paid") && (
-            <ConfirmButton
-              label="Stornieren"
-              question="Rechnung wirklich stornieren?"
-              variant="danger"
-              action={() => cancelInvoiceAction(doc.id)}
-            />
-          )}
-          {!doc.sent_at && (doc.status === "draft" || doc.status === "open") && (
-            <ConfirmButton
-              label="Löschen"
-              question="Wirklich löschen?"
-              variant="danger"
-              action={() => deleteDocumentAction(doc.id)}
-            />
-          )}
+        <div className="mb-4 flex flex-col md:flex-row md:items-center gap-2.5">
+          {/* Status links — schrumpft bei Bedarf (E-Mail wird mit … gekürzt), damit die Buttons Platz behalten */}
+          <div className="flex items-center gap-2.5 min-w-0 md:flex-1">
+            <StatusBadge doc={doc} />
+            {doc.sent_at && (
+              <span className="text-[12.5px] text-[#1d8a4e] font-medium truncate">
+                ✓ Gesendet am {formatDateTime(doc.sent_at)} an {doc.sent_to}
+              </span>
+            )}
+          </div>
+          {/* Aktionen rechts — bleiben auf Desktop in EINER Zeile (md:flex-nowrap), stapeln nur mobil */}
+          <div className="flex items-center gap-2.5 flex-wrap md:flex-nowrap shrink-0">
+            <a
+              href={`/api/belege/${doc.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap"
+            >
+              PDF ansehen
+            </a>
+            <SendButton docId={doc.id} email={doc.customer?.email ?? ""} />
+            {type === "quote" && doc.status !== "accepted" && (
+              <ConfirmButton
+                label="→ In Rechnung umwandeln"
+                question="Rechnung erstellen?"
+                variant="primary"
+                action={async () => {
+                  const r = await convertQuoteAction(doc.id);
+                  if (r.error) return { error: r.error };
+                  return {
+                    redirectTo: `/belege/${r.invoiceId}?ok=${encodeURIComponent(
+                      `Angebot in Rechnung ${r.number} umgewandelt`
+                    )}`,
+                  };
+                }}
+              />
+            )}
+            {type === "invoice" && doc.status === "open" && (
+              <ConfirmButton
+                label="✓ Als bezahlt markieren"
+                question="Zahlung eingegangen?"
+                action={() => markPaidAction(doc.id)}
+              />
+            )}
+            {type === "invoice" && (doc.status === "open" || doc.status === "paid") && (
+              <ConfirmButton
+                label="Stornieren"
+                question="Rechnung wirklich stornieren?"
+                variant="danger"
+                action={() => cancelInvoiceAction(doc.id)}
+              />
+            )}
+            {!doc.sent_at && (doc.status === "draft" || doc.status === "open") && (
+              <ConfirmButton
+                label="Löschen"
+                question="Wirklich löschen?"
+                variant="danger"
+                action={() => deleteDocumentAction(doc.id)}
+              />
+            )}
+          </div>
         </div>
       )}
 
