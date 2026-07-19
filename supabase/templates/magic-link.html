@@ -1,25 +1,36 @@
 <!--
-  Anmelde-Mail im AS-Performance-Design.
-  Einfügen unter: Supabase → Authentication → Emails → "Magic Link"
-  Betreff: Dein Anmelde-Link für AS Performance
-  (Optional identisch bei "Confirm signup" einfügen — greift, falls eine
-  unbekannte E-Mail-Adresse einen Link anfordert.)
+  Anmelde-Mail für PKWdesk.
+  Einfügen unter: Supabase → Authentication → Emails → Templates → "Magic Link"
+  Betreff: Dein Anmelde-Link für PKWdesk
+
+  Dieselbe Vorlage passt auch unter "Confirm signup" — sonst bekommen neu
+  angelegte Mitarbeiter die englische Standardmail.
+
+  Produktmarke statt Werkstattname: Die Vorlage gilt projektweit für ALLE
+  Werkstätten, deshalb "PKWdesk" statt eines einzelnen Betriebsnamens.
+
+  Später mehrere Werkstätten? Dann kann der Betreff den Betrieb nennen:
+      Dein Anmelde-Link für {{ or .Data.werkstatt "PKWdesk" }}
+  {{ .Data }} liest auth.users.user_metadata — der Werkstattname muss dort
+  also beim Anlegen des Nutzers hinterlegt werden. Das "or" liefert den
+  Rückfalltext, solange nichts hinterlegt ist (sonst bleibt der Betreff leer).
+  Vor dem Scharfschalten testen: Ein Syntaxfehler hier stoppt ALLE Auth-Mails.
 -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f7;padding:40px 16px;">
   <tr>
     <td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;">
 
-        <!-- Kopf: Logo + Name -->
+        <!-- Kopf -->
         <tr>
           <td align="center" style="padding-bottom:22px;">
             <table cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td width="44" height="44" align="center" valign="middle" style="background-color:#1d1d1f;border-radius:10px;color:#ffffff;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:17px;font-weight:600;letter-spacing:-0.5px;">
-                  AS
+                <td width="44" height="44" align="center" valign="middle" style="background-color:#1d1d1f;border-radius:10px;color:#ffffff;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:15px;font-weight:600;letter-spacing:-0.5px;">
+                  PD
                 </td>
                 <td style="padding-left:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;text-align:left;">
-                  <div style="font-size:17px;font-weight:600;color:#1d1d1f;letter-spacing:-0.2px;">AS Performance</div>
+                  <div style="font-size:17px;font-weight:600;color:#1d1d1f;letter-spacing:-0.2px;">PKWdesk</div>
                   <div style="font-size:12px;color:#6e6e73;letter-spacing:0.3px;">Werkstatt-Verwaltung</div>
                 </td>
               </tr>
@@ -30,20 +41,37 @@
         <!-- Karte -->
         <tr>
           <td style="background-color:#ffffff;border:1px solid #e5e5e7;border-radius:14px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;text-align:left;">
+
             <h1 style="margin:0 0 8px;font-size:19px;font-weight:700;color:#1d1d1f;letter-spacing:-0.3px;">Anmelden</h1>
-            <p style="margin:0 0 18px;font-size:14px;color:#6e6e73;line-height:1.55;">
-              Gib diesen Code in der Werkstatt-Verwaltung ein — er gilt eine Stunde:
+            <p style="margin:0 0 20px;font-size:14px;color:#6e6e73;line-height:1.55;">
+              Tippe diesen Code in der Werkstatt-Verwaltung ein — er gilt eine Stunde:
             </p>
+
+            <!-- Code -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td align="center" style="background-color:#f5f5f7;border:1px solid #e5e5e7;border-radius:9px;padding:16px;">
-                  <span style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:30px;font-weight:700;letter-spacing:8px;color:#1d1d1f;">{{ .Token }}</span>
+                <td align="center" style="background-color:#f5f5f7;border:1px solid #e5e5e7;border-radius:9px;padding:18px 12px;">
+                  <span style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:9px;color:#1d1d1f;">{{ .Token }}</span>
                 </td>
               </tr>
             </table>
-            <p style="margin:20px 0 12px;font-size:13px;color:#6e6e73;line-height:1.55;">
-              Oder klick einfach hier (nur im selben Browser gültig):
+
+            <p style="margin:18px 0 0;font-size:13px;color:#86868b;line-height:1.55;">
+              Der Code funktioniert auf jedem Gerät — auch wenn du diese E-Mail
+              gerade auf dem Handy liest und dich am Rechner anmeldest.
             </p>
+
+            <!-- Trenner -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0;">
+              <tr><td style="border-top:1px solid #ececf0;font-size:0;line-height:0;">&nbsp;</td></tr>
+            </table>
+
+            <p style="margin:0 0 12px;font-size:13px;color:#6e6e73;line-height:1.55;">
+              Oder klick hier — das klappt nur in dem Browser, in dem du den Code
+              angefordert hast:
+            </p>
+
+            <!-- Knopf -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td align="center" style="background-color:#0071e3;border-radius:9px;">
@@ -53,10 +81,12 @@
                 </td>
               </tr>
             </table>
+
             <p style="margin:22px 0 0;font-size:12px;color:#86868b;line-height:1.55;">
-              Code und Link funktionieren nur einmal. Warst du das nicht, ignoriere
-              diese E-Mail einfach.
+              Code und Link gelten nur einmal. Hast du dich nicht angemeldet,
+              ignoriere diese E-Mail einfach — es passiert dann nichts.
             </p>
+
           </td>
         </tr>
 
@@ -64,8 +94,7 @@
         <tr>
           <td align="center" style="padding-top:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#86868b;line-height:1.6;">
             Diese E-Mail ging an {{ .Email }}, weil damit eine Anmeldung<br>
-            bei AS Performance angefordert wurde.<br>
-            Warst du das nicht, kannst du sie einfach ignorieren.
+            bei PKWdesk angefordert wurde.
           </td>
         </tr>
 
