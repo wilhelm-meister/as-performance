@@ -1,20 +1,29 @@
 <!--
-  Anmelde-Mail für PKWdesk.
-  Einfügen unter: Supabase → Authentication → Emails → Templates → "Magic Link"
-  Betreff: Dein Anmelde-Link für PKWdesk
+  Anmelde-Mail fuer PKWdesk.
+  Einfuegen unter: Supabase -> Authentication -> Emails -> Templates -> "Magic Link"
+  Betreff: Dein Anmelde-Link fuer PKWdesk
 
-  Dieselbe Vorlage passt auch unter "Confirm signup" — sonst bekommen neu
+  Dieselbe Vorlage passt auch unter "Confirm signup" - sonst bekommen neu
   angelegte Mitarbeiter die englische Standardmail.
 
-  Produktmarke statt Werkstattname: Die Vorlage gilt projektweit für ALLE
-  Werkstätten, deshalb "PKWdesk" statt eines einzelnen Betriebsnamens.
+  WICHTIG - Zeichensatz: Alle Umlaute und Sonderzeichen stehen als HTML-Kuerzel
+  (&auml; &mdash; &szlig; ...), NICHT als echte Zeichen. Grund: Beim Versand ueber
+  Supabase kamen echte Umlaute verstuemmelt an ("Aî" statt "-"). HTML-Kuerzel
+  bestehen nur aus ASCII und koennen nicht kaputtgehen. Beim Bearbeiten also
+  bitte keine echten Umlaute eintippen.
 
-  Später mehrere Werkstätten? Dann kann der Betreff den Betrieb nennen:
-      Dein Anmelde-Link für {{ or .Data.werkstatt "PKWdesk" }}
-  {{ .Data }} liest auth.users.user_metadata — der Werkstattname muss dort
+  Produktmarke statt Werkstattname: Die Vorlage gilt projektweit fuer ALLE
+  Werkstaetten, deshalb "PKWdesk" statt eines einzelnen Betriebsnamens.
+
+  Spaeter mehrere Werkstaetten? Dann kann der Betreff den Betrieb nennen:
+      Dein Anmelde-Link fuer {{ or .Data.werkstatt "PKWdesk" }}
+  {{ .Data }} liest auth.users.user_metadata - der Werkstattname muss dort
   also beim Anlegen des Nutzers hinterlegt werden. Das "or" liefert den
-  Rückfalltext, solange nichts hinterlegt ist (sonst bleibt der Betreff leer).
+  Rueckfalltext, solange nichts hinterlegt ist (sonst bleibt der Betreff leer).
   Vor dem Scharfschalten testen: Ein Syntaxfehler hier stoppt ALLE Auth-Mails.
+
+  Codelaenge: Supabase erlaubt 6-10 Stellen (Auth -> Providers -> Email).
+  Die Vorlage kommt mit jeder Laenge zurecht.
 -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f7;padding:40px 16px;">
   <tr>
@@ -44,21 +53,21 @@
 
             <h1 style="margin:0 0 8px;font-size:19px;font-weight:700;color:#1d1d1f;letter-spacing:-0.3px;">Anmelden</h1>
             <p style="margin:0 0 20px;font-size:14px;color:#6e6e73;line-height:1.55;">
-              Tippe diesen Code in der Werkstatt-Verwaltung ein — er gilt eine Stunde:
+              Tippe diesen Code in der Werkstatt-Verwaltung ein &mdash; er gilt eine Stunde:
             </p>
 
             <!-- Code -->
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td align="center" style="background-color:#f5f5f7;border:1px solid #e5e5e7;border-radius:9px;padding:18px 12px;">
-                  <span style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:9px;color:#1d1d1f;">{{ .Token }}</span>
+                <td align="center" style="background-color:#f5f5f7;border:1px solid #e5e5e7;border-radius:9px;padding:18px 10px;">
+                  <span style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:30px;font-weight:700;letter-spacing:6px;color:#1d1d1f;">{{ .Token }}</span>
                 </td>
               </tr>
             </table>
 
             <p style="margin:18px 0 0;font-size:13px;color:#86868b;line-height:1.55;">
-              Der Code funktioniert auf jedem Gerät — auch wenn du diese E-Mail
-              gerade auf dem Handy liest und dich am Rechner anmeldest.
+              Der Code funktioniert auf jedem Ger&auml;t &mdash; auch wenn du diese
+              E-Mail gerade auf dem Handy liest und dich am Rechner anmeldest.
             </p>
 
             <!-- Trenner -->
@@ -67,8 +76,8 @@
             </table>
 
             <p style="margin:0 0 12px;font-size:13px;color:#6e6e73;line-height:1.55;">
-              Oder klick hier — das klappt nur in dem Browser, in dem du den Code
-              angefordert hast:
+              Oder klick hier &mdash; das klappt nur in dem Browser, in dem du den
+              Code angefordert hast:
             </p>
 
             <!-- Knopf -->
@@ -84,13 +93,13 @@
 
             <p style="margin:22px 0 0;font-size:12px;color:#86868b;line-height:1.55;">
               Code und Link gelten nur einmal. Hast du dich nicht angemeldet,
-              ignoriere diese E-Mail einfach — es passiert dann nichts.
+              ignoriere diese E-Mail einfach &mdash; es passiert dann nichts.
             </p>
 
           </td>
         </tr>
 
-        <!-- Fußzeile -->
+        <!-- Fusszeile -->
         <tr>
           <td align="center" style="padding-top:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#86868b;line-height:1.6;">
             Diese E-Mail ging an {{ .Email }}, weil damit eine Anmeldung<br>

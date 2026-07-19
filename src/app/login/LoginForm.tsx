@@ -63,18 +63,18 @@ function CodeStep({ email }: { email: string }) {
         <input type="hidden" name="email" value={email} />
         <div>
           <label htmlFor="code" className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
-            6-stelliger Code aus der E-Mail
+            Code aus der E-Mail
           </label>
           <input
             id="code"
             name="code"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={6}
+            maxLength={10}
             required
             autoFocus
-            placeholder="123456"
-            className="w-full h-[52px] border border-[#e5e5e7] rounded-[9px] px-3 font-mono text-center text-[22px] tracking-[8px] outline-none focus:border-[#0071e3] bg-white"
+            placeholder="12345678"
+            className="w-full h-[52px] border border-[#e5e5e7] rounded-[9px] px-3 font-mono text-center text-[22px] tracking-[6px] outline-none focus:border-[#0071e3] bg-white"
           />
         </div>
 

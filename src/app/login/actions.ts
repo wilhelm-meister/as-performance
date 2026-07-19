@@ -57,8 +57,10 @@ export async function verifyCode(
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const token = String(formData.get("code") || "").replace(/\D/g, "");
 
-  if (token.length !== 6) {
-    return { error: "Bitte den 6-stelligen Code aus der E-Mail eingeben." };
+  // Die Codelänge ist in Supabase einstellbar (6–10 Stellen) — nicht fest auf 6
+  // prüfen, sonst lehnt die App einen gültigen Code wegen der Länge ab.
+  if (token.length < 6 || token.length > 10) {
+    return { error: "Bitte den vollständigen Code aus der E-Mail eingeben." };
   }
 
   const supabase = await createClient();
