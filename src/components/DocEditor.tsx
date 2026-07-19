@@ -353,9 +353,9 @@ export function DocEditor({
           {/* Aktionen rechts — bleiben auf Desktop in EINER Zeile (md:flex-nowrap), stapeln nur mobil */}
           <div className="flex items-center gap-2.5 flex-wrap md:flex-nowrap shrink-0">
             <DocPdfActions
-              url={`/api/belege/${doc.id}/pdf`}
+              pdfUrl={`/api/belege/${doc.id}/pdf`}
+              viewerUrl={`/belege/${doc.id}/ansicht`}
               fileName={`${doc.number}.pdf`}
-              title={`${type === "quote" ? "Angebot" : "Rechnung"} ${doc.number}`}
             />
             <SendButton docId={doc.id} email={doc.customer?.email ?? ""} />
             {type === "quote" && doc.status !== "accepted" && (
@@ -411,9 +411,9 @@ export function DocEditor({
           <span className="flex-1" />
           {doc.reminder_level > 0 && (
             <DocPdfActions
-              url={`/api/belege/${doc.id}/mahnung`}
+              pdfUrl={`/api/belege/${doc.id}/mahnung`}
+              viewerUrl={`/belege/${doc.id}/ansicht?typ=mahnung`}
               fileName={`Mahnung-${doc.number}.pdf`}
-              title={`Mahnung ${doc.number}`}
             />
           )}
           {doc.reminder_level > 0 && (
