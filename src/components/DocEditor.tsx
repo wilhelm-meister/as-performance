@@ -32,6 +32,27 @@ import {
   sendReminderAction,
 } from "@/app/(app)/belege/actions";
 
+// Sauberes Umschlag-Icon (SVG) statt des Unicode-Zeichens ✉, das auf vielen
+// Systemen als leeres Kästchen / fremdes Symbol dargestellt wird.
+function MailIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
 const ITEM_PLACEHOLDER: Record<ItemType, string> = {
   labor: "z.B. Bremsen erneuern",
   part: "z.B. Bremsscheiben",
@@ -86,7 +107,8 @@ function ReminderSendButton({ docId, email }: { docId: string; email: string }) 
           onClick={() => setArmed(true)}
           className="h-9 px-3.5 rounded-lg font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3]"
         >
-          ✉ Mahnung senden
+          <MailIcon />
+          Mahnung senden
         </button>
         {error && <div className="mt-2 text-[12px] text-[#c9362b] max-w-[420px]">{error}</div>}
       </span>
@@ -135,10 +157,11 @@ function SendButton({ docId, email }: { docId: string; email: string }) {
   if (!email) {
     return (
       <span
-        className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center border border-[#e5e5e7] bg-[#f5f5f7] text-[#86868b]"
+        className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-[#f5f5f7] text-[#86868b]"
         title="Der Kunde hat keine E-Mail-Adresse hinterlegt"
       >
-        ✉ Senden
+        <MailIcon />
+        Senden
       </span>
     );
   }
@@ -151,7 +174,8 @@ function SendButton({ docId, email }: { docId: string; email: string }) {
           onClick={() => setArmed(true)}
           className="h-9 px-3.5 rounded-lg font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 bg-[#0071e3] text-white hover:bg-[#0060c9]"
         >
-          ✉ Per E-Mail senden
+          <MailIcon />
+          Per E-Mail senden
         </button>
         {error && (
           <div className="mt-2 text-[12px] text-[#c9362b] max-w-[420px]">{error}</div>
