@@ -3,10 +3,11 @@ import { getCustomer, getDoc, getSettings } from "@/lib/data";
 import { buildDocumentPdf } from "@/lib/pdf";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const download = new URL(request.url).searchParams.get("download") === "1";
 
   const doc = await getDoc(id);
   if (!doc) return new NextResponse("Beleg nicht gefunden", { status: 404 });
@@ -25,7 +26,7 @@ export async function GET(
   return new NextResponse(Buffer.from(bytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${doc.number}.pdf"`,
+      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${doc.number}.pdf"`,
       "Cache-Control": "no-store",
     },
   });

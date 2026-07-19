@@ -19,6 +19,7 @@ import {
 } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmButton } from "./ConfirmButton";
+import { DocPdfActions } from "./DocPdfActions";
 import { CatalogPicker } from "./CatalogPicker";
 import {
   cancelInvoiceAction,
@@ -351,14 +352,11 @@ export function DocEditor({
           </div>
           {/* Aktionen rechts — bleiben auf Desktop in EINER Zeile (md:flex-nowrap), stapeln nur mobil */}
           <div className="flex items-center gap-2.5 flex-wrap md:flex-nowrap shrink-0">
-            <a
-              href={`/api/belege/${doc.id}/pdf`}
-              target="_blank"
-              rel="noreferrer"
-              className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap"
-            >
-              PDF ansehen
-            </a>
+            <DocPdfActions
+              url={`/api/belege/${doc.id}/pdf`}
+              fileName={`${doc.number}.pdf`}
+              title={`${type === "quote" ? "Angebot" : "Rechnung"} ${doc.number}`}
+            />
             <SendButton docId={doc.id} email={doc.customer?.email ?? ""} />
             {type === "quote" && doc.status !== "accepted" && (
               <ConfirmButton
@@ -412,14 +410,11 @@ export function DocEditor({
           </span>
           <span className="flex-1" />
           {doc.reminder_level > 0 && (
-            <a
-              href={`/api/belege/${doc.id}/mahnung`}
-              target="_blank"
-              rel="noreferrer"
-              className="h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3]"
-            >
-              Mahnung ansehen
-            </a>
+            <DocPdfActions
+              url={`/api/belege/${doc.id}/mahnung`}
+              fileName={`Mahnung-${doc.number}.pdf`}
+              title={`Mahnung ${doc.number}`}
+            />
           )}
           {doc.reminder_level > 0 && (
             <ReminderSendButton docId={doc.id} email={doc.customer?.email ?? ""} />

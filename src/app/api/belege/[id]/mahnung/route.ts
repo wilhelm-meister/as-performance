@@ -4,10 +4,11 @@ import { buildReminderPdf } from "@/lib/pdf";
 import { REMINDER_TITLE } from "@/lib/format";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const download = new URL(request.url).searchParams.get("download") === "1";
 
   const doc = await getDoc(id);
   if (!doc || doc.type !== "invoice" || doc.reminder_level < 1) {
@@ -28,7 +29,7 @@ export async function GET(
   return new NextResponse(Buffer.from(bytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${title}-${doc.number}.pdf"`,
+      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${title}-${doc.number}.pdf"`,
       "Cache-Control": "no-store",
     },
   });
