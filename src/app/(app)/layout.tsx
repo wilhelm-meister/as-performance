@@ -24,7 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const overdueCount = docs.filter((d) => effectiveStatus(d) === "overdue").length;
 
   return (
-    <div className="flex h-screen w-full bg-[#fbfbfd] overflow-hidden">
+    <div
+      className="flex h-screen w-full bg-[#fbfbfd] overflow-hidden"
+      style={{ height: "100svh" }}
+    >
       <Sidebar
         workshopName={settings?.name || "AS Performance"}
         ownerName={settings?.owner_name || ""}
