@@ -284,6 +284,7 @@ ${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
   const result = await sendDocumentMail({
     to,
     replyTo: settings.email || undefined,
+    fromName: settings.name,
     subject: `${title} zur Rechnung ${doc.number} – ${settings.name}`,
     text,
     pdf,
@@ -335,6 +336,7 @@ ${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
   const result = await sendDocumentMail({
     to,
     replyTo: settings.email || undefined,
+    fromName: settings.name,
     subject: `${noun} ${doc.number} – ${settings.name}`,
     text,
     pdf,

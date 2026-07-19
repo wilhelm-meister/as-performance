@@ -24,7 +24,6 @@ export default async function EinstellungenPage({
 
   const configured = mailConfigured();
   const from = mailFrom();
-  const testMode = from.includes("onboarding@resend.dev");
   const scanReady = geminiConfigured();
 
   return (
@@ -94,27 +93,19 @@ export default async function EinstellungenPage({
 
           <div className="bg-white border border-[#e5e5e7] rounded-xl px-6 py-5">
             <div className="text-[16px] font-bold mb-1">E-Mail-Versand</div>
-            {!configured ? (
-              <p className="text-[13px] text-[#6e6e73] leading-relaxed">
-                Noch nicht eingerichtet. Sobald in Vercel die Umgebungsvariable{" "}
-                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">
-                  RESEND_API_KEY
-                </code>{" "}
-                hinterlegt ist, kannst du Angebote und Rechnungen direkt aus der App an
-                Kunden schicken. Bis dahin: PDF ansehen und von Hand versenden.
-              </p>
-            ) : testMode ? (
-              <p className="text-[13px] text-[#9a6a00] leading-relaxed">
-                <strong>Testmodus:</strong> Versand läuft über{" "}
-                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">{from}</code>{" "}
-                — Resend stellt so nur an die eigene Konto-Adresse zu. Für echten
-                Kundenversand eine Domain bei Resend verifizieren und{" "}
-                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">MAIL_FROM</code>{" "}
-                setzen.
-              </p>
-            ) : (
+            {configured ? (
               <p className="text-[13px] text-[#1d8a4e] leading-relaxed">
                 ✓ Aktiv — Belege gehen als <strong>{from}</strong> raus.
+              </p>
+            ) : (
+              <p className="text-[13px] text-[#6e6e73] leading-relaxed">
+                Noch nicht eingerichtet. Sobald in Vercel die SMTP-Zugangsdaten{" "}
+                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">SMTP_HOST</code>,{" "}
+                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">SMTP_USER</code>{" "}
+                und{" "}
+                <code className="font-mono text-[12px] bg-[#f5f5f7] px-1.5 py-0.5 rounded">SMTP_PASS</code>{" "}
+                hinterlegt sind, kannst du Angebote und Rechnungen direkt aus der App an
+                Kunden schicken. Bis dahin: PDF ansehen und von Hand versenden.
               </p>
             )}
           </div>
