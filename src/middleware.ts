@@ -46,6 +46,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // PWA-Dateien (Manifest + generierte App-Icons) bleiben ohne Login erreichbar,
+    // sonst kann der Browser die App nicht als Vollbild-App installieren.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
   ],
 };
