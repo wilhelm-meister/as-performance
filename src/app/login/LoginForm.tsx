@@ -73,7 +73,7 @@ function CodeStep({ email }: { email: string }) {
             maxLength={10}
             required
             autoFocus
-            placeholder="12345678"
+            placeholder="123456"
             className="w-full h-[52px] border border-[#e5e5e7] rounded-[9px] px-3 font-mono text-center text-[22px] tracking-[6px] outline-none focus:border-[#0071e3] bg-white"
           />
         </div>
