@@ -1,4 +1,5 @@
 import { SearchBox } from "@/components/SearchBox";
+import { MoreMenu } from "@/components/MoreMenu";
 
 export function Topbar({
   title,
@@ -22,6 +23,8 @@ export function Topbar({
       {searchAction && <SearchBox basePath={searchAction} defaultValue={search} />}
 
       {children}
+
+      <MoreMenu />
     </header>
   );
 }
