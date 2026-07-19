@@ -1,9 +1,11 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { ok?: boolean; email?: string; error?: string };
+export type VerifyState = { error?: string } | null;
 
 export async function sendMagicLink(
   _prev: LoginState,
@@ -37,4 +39,42 @@ export async function sendMagicLink(
   }
 
   return { ok: true, email };
+}
+
+/**
+ * Anmeldung per 6-stelligem Code aus der E-Mail.
+ *
+ * Warum es das gibt: Der Klick-Link nutzt das PKCE-Verfahren und braucht einen
+ * Schlüssel, der im anfordernden Browser als Cookie liegt. Mail-Apps (Gmail &
+ * Co.) öffnen Links aber in ihrem eigenen eingebauten Browser — dort fehlt der
+ * Schlüssel, die Anmeldung scheitert und sah bisher wie „Link abgelaufen" aus.
+ * Der Code kommt ohne Cookie aus und funktioniert deshalb auf jedem Gerät.
+ */
+export async function verifyCode(
+  _prev: VerifyState,
+  formData: FormData
+): Promise<VerifyState> {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const token = String(formData.get("code") || "").replace(/\D/g, "");
+
+  if (token.length !== 6) {
+    return { error: "Bitte den 6-stelligen Code aus der E-Mail eingeben." };
+  }
+
+  const supabase = await createClient();
+  // Je nach Konto hinterlegt Supabase den Code als „email"- oder als
+  // „magiclink"-Token. Beide Varianten prüfen, sonst scheitert ein gültiger
+  // Code nur wegen der Typbezeichnung.
+  let { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) {
+    ({ error } = await supabase.auth.verifyOtp({ email, token, type: "magiclink" }));
+  }
+
+  if (error) {
+    return {
+      error: "Der Code stimmt nicht oder ist abgelaufen. Fordere dir eine neue E-Mail an.",
+    };
+  }
+
+  redirect("/");
 }

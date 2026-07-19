@@ -24,14 +24,16 @@ export default async function LoginPage({
         <div className="bg-white border border-[#e5e5e7] rounded-[14px] p-7 shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
           <h1 className="text-[19px] font-bold tracking-[-0.3px] mb-1.5">Anmelden</h1>
           <p className="text-[13.5px] text-[#6e6e73] mb-5 leading-relaxed">
-            Gib deine E-Mail-Adresse ein — du bekommst einen Anmelde-Link zugeschickt.
-            Kein Passwort nötig.
+            Gib deine E-Mail-Adresse ein — du bekommst einen 6-stelligen Code
+            zugeschickt. Kein Passwort nötig.
           </p>
 
           {error === "link" && (
             <div className="mb-4 rounded-[9px] bg-[#fff2f1] border border-[#f3c4c0] px-4 py-3 text-[13px] text-[#c9362b]">
-              Der Link ist abgelaufen oder wurde schon benutzt. Fordere einfach einen
-              neuen an — und öffne ihn im selben Browser, in dem du ihn angefordert hast.
+              Der Anmelde-Link hat nicht funktioniert. Das liegt meistens daran, dass
+              die Mail-App den Link in einem anderen Browser öffnet als dem, in dem du
+              ihn angefordert hast. Fordere unten einfach eine neue E-Mail an und tippe
+              den <strong>6-stelligen Code</strong> ein — der funktioniert immer.
             </div>
           )}
 
