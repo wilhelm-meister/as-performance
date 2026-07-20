@@ -8,8 +8,10 @@ import Link from "next/link";
  * In-App-Navigation auf die eigene Ansichtsseite `/belege/[id]/ansicht` mit
  * festem „← Zurück". Auf dem Desktop bleibt es beim neuen Tab + Download.
  */
+// Anzeige (inline-flex/hidden) NICHT hier setzen — sonst überstimmt sie das
+// responsive `hidden md:…` der einzelnen Buttons und alle bleiben mobil sichtbar.
 const BTN =
-  "h-9 px-3.5 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap";
+  "h-9 px-3.5 rounded-lg font-semibold text-[13px] items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap";
 
 function EyeIcon() {
   return (
@@ -42,7 +44,7 @@ export function DocPdfActions({
   return (
     <>
       {/* Handy: In-App-Ansicht mit garantiertem „Zurück" (keine Sackgasse) */}
-      <Link href={viewerUrl} className={`${BTN} md:hidden`}>
+      <Link href={viewerUrl} className={`${BTN} inline-flex md:hidden`}>
         <EyeIcon />
         PDF ansehen
       </Link>
