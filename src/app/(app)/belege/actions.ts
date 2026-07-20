@@ -278,8 +278,12 @@ anbei erhalten Sie eine ${title} zur Rechnung ${doc.number} vom ${doc.issue_date
 Sollten Sie den Betrag bereits überwiesen haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.
 
 Mit freundlichen Grüßen
+
 ${settings.owner_name || settings.name}
-${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
+${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}
+
+
+`;
 
   const result = await sendDocumentMail({
     to,
@@ -330,8 +334,12 @@ anbei erhalten Sie ${doc.type === "quote" ? "unser Angebot" : "unsere Rechnung"}
 Bei Fragen melden Sie sich gern.
 
 Mit freundlichen Grüßen
+
 ${settings.owner_name || settings.name}
-${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
+${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}
+
+
+`;
 
   const result = await sendDocumentMail({
     to,
