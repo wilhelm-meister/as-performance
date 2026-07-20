@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { getDoc } from "@/lib/data";
 import { PdfShareButton } from "@/components/PdfShareButton";
 
+// h-11 (44px) auf dem Handy = gleiche Höhe wie echte <button> (globals.css macht
+// Buttons mobil 44px); md:h-9 = 36px am Desktop. Sonst wäre der Link niedriger.
 const BTN =
-  "h-9 px-3 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap shrink-0";
+  "h-11 md:h-9 px-3 rounded-lg font-semibold text-[13px] inline-flex items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap shrink-0";
 
 /**
  * In-App-PDF-Ansicht. Zeigt das PDF im eigenen Rahmen (iframe) MIT festem
@@ -35,7 +37,7 @@ export default async function BelegAnsichtPage({
       <header className="h-[56px] shrink-0 bg-white border-b border-[#e5e5e7] flex items-center gap-2 px-3 md:px-5">
         <Link
           href={`/belege/${id}`}
-          className="inline-flex items-center gap-1 h-9 pl-1.5 pr-3 rounded-lg text-[13.5px] font-semibold text-[#0071e3] hover:bg-[#f2f2f2] shrink-0"
+          className="inline-flex items-center gap-1 h-11 md:h-9 pl-1.5 pr-3 rounded-lg text-[13.5px] font-semibold text-[#0071e3] hover:bg-[#f2f2f2] shrink-0"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6" />

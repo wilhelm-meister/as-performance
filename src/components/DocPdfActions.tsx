@@ -11,7 +11,7 @@ import Link from "next/link";
 // Anzeige (inline-flex/hidden) NICHT hier setzen — sonst überstimmt sie das
 // responsive `hidden md:…` der einzelnen Buttons und alle bleiben mobil sichtbar.
 const BTN =
-  "h-9 px-3.5 rounded-lg font-semibold text-[13px] items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap";
+  "h-11 md:h-9 px-3.5 rounded-lg font-semibold text-[13px] items-center gap-1.5 border border-[#e5e5e7] bg-white hover:border-[#0071e3] hover:text-[#0071e3] whitespace-nowrap";
 
 function EyeIcon() {
   return (
