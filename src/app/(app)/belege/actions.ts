@@ -280,10 +280,7 @@ Sollten Sie den Betrag bereits überwiesen haben, betrachten Sie dieses Schreibe
 Mit freundlichen Grüßen
 
 ${settings.owner_name || settings.name}
-${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}
-
-
-`;
+${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
 
   const result = await sendDocumentMail({
     to,
@@ -336,10 +333,7 @@ Bei Fragen melden Sie sich gern.
 Mit freundlichen Grüßen
 
 ${settings.owner_name || settings.name}
-${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}
-
-
-`;
+${settings.name}${settings.phone ? `\nTelefon: ${settings.phone}` : ""}`;
 
   const result = await sendDocumentMail({
     to,

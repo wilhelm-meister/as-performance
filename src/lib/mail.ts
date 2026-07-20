@@ -19,6 +19,28 @@ export function mailFrom(): string {
   return process.env.MAIL_FROM || "noreply@pkwdesk.de";
 }
 
+/**
+ * Wandelt den reinen Mailtext in eine schlichte HTML-Fassung um und hängt einen
+ * echten Abstands-Block ans Ende. Grund: Manche Postfächer (z. B. Apple Mail)
+ * zeigen den PDF-Anhang direkt unter dem Text — Leerzeilen am reinen Textende
+ * werden dabei oft gekürzt, ein HTML-Block mit fester Höhe nicht. So bekommt die
+ * eingebettete PDF-Vorschau verlässlich Abstand zur Signatur.
+ */
+function textToEmailHtml(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const body = escaped.replace(/\r?\n/g, "<br>");
+  // Bewusst KEINE Textfarbe setzen: sonst wäre die Schrift im Dunkelmodus
+  // dunkel-auf-dunkel. Ohne Farbe färbt die Mail-App den Text themengerecht.
+  return (
+    `<div style="font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;` +
+    `font-size:14px;line-height:1.55;">${body}</div>` +
+    `<div style="font-size:0;line-height:48px;height:48px;">&nbsp;</div>`
+  );
+}
+
 function buildTransport() {
   const port = Number(process.env.SMTP_PORT || "587");
   return nodemailer.createTransport({
@@ -70,6 +92,7 @@ export async function sendDocumentMail({
       replyTo,
       subject,
       text,
+      html: textToEmailHtml(text),
       attachments: [{ filename, content: Buffer.from(pdf) }],
     });
     return { ok: true };
