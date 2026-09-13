@@ -565,18 +565,28 @@ export function DocEditor({
             )}
 
             {vehicle && (
-              <div className="px-4 md:px-6 py-3.5 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4 bg-[#fafafc] border-b border-[#ececf0]">
+              <div className="px-4 md:px-6 py-3.5 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 bg-[#fafafc] border-b border-[#ececf0]">
                 <div>
                   <div className="text-[11px] text-[#86868b] uppercase tracking-[0.4px] mb-[3px]">
                     Kennzeichen
                   </div>
                   <div className="font-mono font-semibold text-[14px]">{vehicle.plate}</div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-[11px] text-[#86868b] uppercase tracking-[0.4px] mb-[3px]">
                     VIN
                   </div>
-                  <div className="font-mono text-[13px]">{vehicle.vin || "—"}</div>
+                  <div className="font-mono text-[13px] break-all">{vehicle.vin || "—"}</div>
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] text-[#86868b] uppercase tracking-[0.4px] mb-[3px]">
+                    Schlüsselnummer
+                  </div>
+                  <div className="font-mono text-[13px] break-words">
+                    <span className="text-[#86868b]">HSN</span> {vehicle.hsn?.trim() || "—"}
+                    {" / "}
+                    <span className="text-[#86868b]">TSN</span> {vehicle.tsn?.trim() || "—"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-[11px] text-[#86868b] uppercase tracking-[0.4px] mb-[3px]">
@@ -593,7 +603,7 @@ export function DocEditor({
                   )}
                 </div>
                 {vehicleDetails(vehicle) && (
-                  <div className="col-span-2 sm:col-span-3 text-[12px] text-[#86868b] -mt-1">
+                  <div className="col-span-full text-[12px] text-[#86868b] -mt-1">
                     {vehicleDetails(vehicle)}
                   </div>
                 )}
