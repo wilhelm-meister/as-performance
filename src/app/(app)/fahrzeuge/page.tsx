@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { listVehicles } from "@/lib/data";
+import { listVehicles, listCustomers } from "@/lib/data";
+import { matchesSearch, vehicleSearchValues } from "@/lib/search";
 import { vehicleDetails } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
@@ -11,16 +12,15 @@ export default async function FahrzeugePage({
   searchParams: Promise<{ q?: string; ok?: string }>;
 }) {
   const { q, ok } = await searchParams;
-  const vehicles = await listVehicles();
+  const [vehicles, customers] = await Promise.all([listVehicles(), listCustomers()]);
+  const customerById = new Map(customers.map(c => [c.id, c]));
 
   const query = (q ?? "").trim().toLowerCase();
   const filtered = vehicles.filter((v) => {
     if (!query) return true;
-    const hay = [v.plate, v.model, v.vin, v.hsn, v.tsn, v.customer?.name, v.customer?.company]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return hay.includes(query);
+    const c = v.customer_id ? customerById.get(v.customer_id) : undefined;
+    return matchesSearch(query, [...vehicleSearchValues(v), v.customer?.name,
+      v.customer?.company, c?.zip, c?.city, c?.street, c?.phone, c?.email]);
   });
 
   return (

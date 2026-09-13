@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { listDocs } from "@/lib/data";
+import { listDocs, listCustomers } from "@/lib/data";
+import { matchesSearch } from "@/lib/search";
 import { Topbar } from "@/components/Topbar";
 import { OkBanner } from "@/components/OkBanner";
 import { DocTable } from "@/components/DocTable";
@@ -10,17 +11,19 @@ export default async function AngebotePage({
   searchParams: Promise<{ q?: string; ok?: string }>;
 }) {
   const { q, ok } = await searchParams;
-  const docs = await listDocs();
+  const [docs, customers] = await Promise.all([listDocs(), listCustomers()]);
+  const customerById = new Map(customers.map(c => [c.id, c]));
 
   const query = (q ?? "").trim().toLowerCase();
   const quotes = docs
     .filter((d) => d.type === "quote")
     .filter((d) => {
       if (!query) return true;
-      const hay = [d.number, d.customer?.name ?? "", d.vehicle?.plate ?? ""]
-        .join(" ")
-        .toLowerCase();
-      return hay.includes(query);
+      const c = customerById.get(d.customer_id);
+      const v = c?.vehicles.find(v => v.id === d.vehicle_id);
+      return matchesSearch(query, [d.number, d.customer?.name, d.customer?.company,
+        d.vehicle?.plate, d.vehicle?.model, c?.zip, c?.city, c?.street, c?.phone,
+        c?.email, v?.vin, v?.hsn, v?.tsn]);
     });
 
   return (

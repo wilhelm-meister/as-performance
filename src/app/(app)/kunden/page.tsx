@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { matchesSearch, customerSearchValues } from "@/lib/search";
 import { listCustomers, listDocs } from "@/lib/data";
 import { euro, initials } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
@@ -15,10 +16,7 @@ export default async function KundenPage({
   const query = (q ?? "").trim().toLowerCase();
   const filtered = customers.filter((c) => {
     if (!query) return true;
-    const hay = [c.name, c.company, c.email, c.phone, ...c.vehicles.map((v) => v.plate)]
-      .join(" ")
-      .toLowerCase();
-    return hay.includes(query);
+    return matchesSearch(query, customerSearchValues(c));
   });
 
   // „Umsatz" je Kunde = Summe aller bezahlten Rechnungen (wie die Zahl auf dem Dashboard)

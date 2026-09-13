@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { Customer } from "@/lib/types";
+import type { LeanCustomer } from "./VehicleEditor";
 import type { HolderExtract } from "@/lib/gemini";
 import { VehicleEditor, type VehiclePrefill, type ExistingVehicle } from "./VehicleEditor";
 import { cleanVin, isValidVin } from "@/lib/vin";
@@ -70,7 +70,7 @@ export function NewVehicleFlow({
   existingVehicles = [],
   presetCustomerId,
 }: {
-  customers: Pick<Customer, "id" | "name" | "company">[];
+  customers: LeanCustomer[];
   existingVehicles?: ExistingVehicle[];
   presetCustomerId?: string;
 }) {

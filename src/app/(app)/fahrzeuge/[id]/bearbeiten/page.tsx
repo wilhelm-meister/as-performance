@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { customerSearchValues } from "@/lib/search";
 import { notFound } from "next/navigation";
 import { getVehicle, listCustomers, vehicleDocSignedUrl } from "@/lib/data";
 import { Topbar } from "@/components/Topbar";
@@ -13,7 +14,10 @@ export default async function FahrzeugBearbeitenPage({
   const [vehicle, customers] = await Promise.all([getVehicle(id), listCustomers()]);
   if (!vehicle) notFound();
 
-  const lean = customers.map((c) => ({ id: c.id, name: c.name, company: c.company }));
+  const lean = customers.map(c => ({ id: c.id, name: c.name, company: c.company,
+    search: customerSearchValues(c),
+    detail: [c.company, c.street, `${c.zip} ${c.city}`.trim(), c.vehicles.map(v => v.plate).join(", ")].filter(Boolean).join(" · "),
+  }));
   const docUrl = await vehicleDocSignedUrl(vehicle.document_url);
 
   return (

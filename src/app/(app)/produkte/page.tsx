@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { matchesSearch } from "@/lib/search";
+import { catalogLabel, categorizeProduct } from "@/lib/catalog-category";
 import { getSettings, listProducts } from "@/lib/data";
 import { euro, ITEM_TYPE_LABEL, ITEM_UNIT } from "@/lib/format";
 import { Topbar } from "@/components/Topbar";
@@ -15,7 +17,7 @@ export default async function ProduktePage({
 
   const query = (q ?? "").trim().toLowerCase();
   const filtered = products.filter(
-    (p) => !query || p.name.toLowerCase().includes(query)
+    (p) => matchesSearch(query, [p.name, ITEM_TYPE_LABEL[p.type], catalogLabel(categorizeProduct(p))])
   );
 
   return (

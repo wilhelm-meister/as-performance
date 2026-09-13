@@ -1,5 +1,8 @@
 "use client";
 
+import { SearchSelect } from "@/components/SearchSelect";
+import { customerSearchValues, vehicleSearchValues } from "@/lib/search";
+
 import { useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -292,7 +295,7 @@ export function DocEditor({
   const onCustomerChange = (cid: string) => {
     setCustomerId(cid);
     const c = customers.find((x) => x.id === cid);
-    const v = c?.vehicles[0];
+    const v = c?.vehicles.length === 1 ? c.vehicles[0] : undefined;
     setVehicleId(v?.id ?? "");
     setKm(v?.km != null ? String(v.km) : "");
   };
@@ -324,8 +327,6 @@ export function DocEditor({
       }
     });
 
-  const selectCls =
-    "w-full h-10 border border-[#e5e5e7] rounded-lg px-[11px] bg-white text-[14px] outline-none focus:border-[#0071e3] cursor-pointer disabled:cursor-default disabled:bg-[#fafafc] disabled:text-[#6e6e73]";
   const cellInput =
     "border border-transparent rounded-md h-8 px-2 text-[13.5px] outline-none bg-[#f5f5f7] focus:border-[#0071e3] focus:bg-white w-full";
   const cellTextarea =
@@ -517,38 +518,28 @@ export function DocEditor({
                 <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
                   Kunde
                 </label>
-                <select
+                <SearchSelect
+                  label="Kunde: Name, PLZ oder Kennzeichen"
                   value={customerId}
-                  onChange={(e) => onCustomerChange(e.target.value)}
+                  onChange={onCustomerChange}
                   disabled={readOnly}
-                  className={selectCls}
-                >
-                  <option value="">— Kunde wählen —</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                      {c.company ? ` · ${c.company}` : ""}
-                    </option>
-                  ))}
-                </select>
+                  options={customers.map(c => ({ id: c.id, label: c.name,
+                    detail: [c.company, c.street, `${c.zip} ${c.city}`.trim(), c.vehicles.map(v => v.plate).join(", ")].filter(Boolean).join(" · "),
+                    search: customerSearchValues(c) }))}
+                />
               </div>
               <div>
                 <label className="text-[12px] font-semibold text-[#6e6e73] block mb-1.5">
                   Fahrzeug
                 </label>
-                <select
+                <SearchSelect
+                  label="Fahrzeug: Kennzeichen, Modell oder FIN"
                   value={vehicleId}
-                  onChange={(e) => onVehicleChange(e.target.value)}
+                  onChange={onVehicleChange}
                   disabled={readOnly || !customer}
-                  className={selectCls}
-                >
-                  <option value="">— Fahrzeug wählen —</option>
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.plate} — {v.model || "—"}
-                    </option>
-                  ))}
-                </select>
+                  options={vehicles.map(v => ({ id: v.id, label: `${v.plate} — ${v.model || "—"}`,
+                    detail: [v.vin, v.hsn, v.tsn].filter(Boolean).join(" · "), search: vehicleSearchValues(v) }))}
+                />
               </div>
             </div>
 

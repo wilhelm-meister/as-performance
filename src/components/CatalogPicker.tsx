@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Product } from "@/lib/types";
+import { matchesSearch } from "@/lib/search";
 import { ITEM_TYPE_LABEL, ITEM_UNIT, euro } from "@/lib/format";
 import {
   CATALOG_ORDER,
@@ -63,7 +64,7 @@ export function CatalogPicker({
     const q = query.trim().toLowerCase();
     const buckets = new Map<string, Product[]>();
     for (const p of products) {
-      if (q && !p.name.toLowerCase().includes(q)) continue;
+      if (!matchesSearch(q, [p.name, ITEM_TYPE_LABEL[p.type], catalogLabel(categorizeProduct(p))])) continue;
       const key = categorizeProduct(p);
       const list = buckets.get(key) ?? [];
       list.push(p);

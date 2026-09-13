@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { SearchSelect } from "@/components/SearchSelect";
 import { useRouter } from "next/navigation";
 import type { Customer, Vehicle } from "@/lib/types";
 import type { HolderExtract } from "@/lib/gemini";
@@ -22,7 +23,7 @@ export type VehiclePrefill = {
   km?: string;
 };
 
-type LeanCustomer = Pick<Customer, "id" | "name" | "company">;
+export type LeanCustomer = Pick<Customer, "id" | "name" | "company"> & { search?: string[]; detail?: string };
 export type ExistingVehicle = { id: string; plate: string; vin: string; customerName: string };
 
 const normPlate = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -305,19 +306,13 @@ export function VehicleEditor({
             />
           </Labeled>
           <Labeled label="Kunde (optional)">
-            <select
+            <SearchSelect
+              label="Kunde: Name, PLZ oder Kennzeichen"
               value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              className={`${field} cursor-pointer`}
-            >
-              <option value="">— kein Kunde —</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                  {c.company ? ` · ${c.company}` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={setCustomerId}
+              options={customers.map(c => ({ id: c.id, label: c.name,
+                detail: c.detail ?? c.company, search: c.search ?? [c.name, c.company] }))}
+            />
           </Labeled>
 
           <div className="sm:col-span-2">
