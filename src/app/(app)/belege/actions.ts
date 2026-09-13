@@ -8,6 +8,7 @@ import { REMINDER_TITLE, docNoun, effectiveStatus, todayISO } from "@/lib/format
 import { buildDocumentPdf, buildReminderPdf } from "@/lib/pdf";
 import { sendDocumentMail } from "@/lib/mail";
 import type { Item } from "@/lib/types";
+import { canDeleteDocument } from "@/lib/document-permissions";
 
 export type SaveDocInput = {
   id: string | null;
@@ -150,16 +151,24 @@ export async function markPaidAction(id: string) {
 export async function deleteDocumentAction(id: string) {
   const doc = await getDoc(id);
   if (!doc) return { error: "Beleg nicht gefunden." };
-  if (doc.sent_at) {
-    return { error: "Bereits versendete Belege können nicht gelöscht werden." };
+  if (doc.type === "quote" && (doc.converted_to || doc.status === "accepted")) {
+    return { error: "Zu diesem Angebot wurde bereits eine Rechnung erstellt. Es bleibt als zugehöriger Vorgang erhalten." };
   }
-  if (doc.status !== "draft" && doc.status !== "open") {
+  if (!canDeleteDocument(doc)) {
     return { error: "Dieser Beleg kann nicht mehr gelöscht werden." };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("documents").delete().eq("id", id);
+  // Repeat the conditions in the DELETE so a concurrent conversion blocks deletion.
+  let deletion = supabase.from("documents").delete().eq("id", id).eq("type", doc.type);
+  if (doc.type === "quote") {
+    deletion = deletion.in("status", ["draft", "sent"]).is("converted_to", null);
+  } else {
+    deletion = deletion.eq("status", "open").is("sent_at", null).eq("locked", false);
+  }
+  const { data: deleted, error } = await deletion.select("id");
   if (error) return { error: "Löschen fehlgeschlagen." };
+  if (!deleted?.length) return { error: "Der Beleg wurde inzwischen geändert oder gelöscht. Bitte lade die Seite neu." };
 
   const listPath = doc.type === "quote" ? "/angebote" : "/rechnungen";
   revalidatePath("/", "layout");

@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchSelect } from "@/components/SearchSelect";
+import { canDeleteDocument } from "@/lib/document-permissions";
 import { customerSearchValues, vehicleSearchValues } from "@/lib/search";
 
 import { useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -390,10 +391,10 @@ export function DocEditor({
                 action={() => cancelInvoiceAction(doc.id)}
               />
             )}
-            {!doc.sent_at && (doc.status === "draft" || doc.status === "open") && (
+            {canDeleteDocument(doc) && (
               <ConfirmButton
-                label="Löschen"
-                question="Wirklich löschen?"
+                label={type === "quote" ? "Angebot löschen" : "Löschen"}
+                question={`${doc.number} endgültig löschen?`}
                 variant="danger"
                 action={() => deleteDocumentAction(doc.id)}
               />
